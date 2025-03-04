@@ -1,6 +1,12 @@
 # brainslice_manuscript_repo
 The complete code base for the framework and algorithms described in the manuscript Probing route specific glioblastoma invasion dynamics in patient-specific xenograft brain slices.
 
+<video controls>
+  <source src="3dplot.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+
 # Project Name
 
 ![Banner](https://your-image-url.com/banner.png)
