@@ -14,7 +14,7 @@ This repository contains the implementation of [Project Name], a [brief descript
 - Feature 2
 - Feature 3
 
-![Demo GIF](https://your-link-to-gif-or-image.gif)
+![Demo GIF](https://github.com/shipsauce/brainslice_manuscript_repo/blob/main/3dplot.mp4)
 
 
 ## Installation
