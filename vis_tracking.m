@@ -24,13 +24,13 @@ if(mode == "morphology")
 
     % Create a VideoWriter object and give it a filename for writing to
     % folder
-    info = table2array(info);
-    filename = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/set_' num2str(info(1)) '_exp_' num2str(info(2)) '_roi_' num2str(info(3)) '.mp4'];
+    folder = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/Final_morph_inspection_jan_2025/' info.HGCC{1} '/' info.perturbation{:} '/'];
+    filename = [folder 'set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '.mp4'];
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
     open(obj);
     figure('Renderer', 'painters', 'Position', [500 500 1000 800])
-    sgtitle(['Set ' num2str(info(1)) ' exp ' num2str(info(2)) ' roi ' num2str(info(3))])
+    sgtitle(['Set ' num2str(info.set) ' exp ' num2str(info.exp) ' roi ' num2str(info.roi)])
      
     % Color-coding classes (branching = red, diffuse translocation =
     % purple, junk = black, locomotion = blue, perivascular
@@ -88,8 +88,8 @@ if(mode == "morphology")
     close(obj);
 
 elseif(mode == "tme")
-    info = table2array(info);
-    filename = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/set_' num2str(info(1)) '_exp_' num2str(info(2)) '_roi_' num2str(info(3)) '.mp4'];
+    folder = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/Final_TME_inspection_jan_2025/' info.HGCC{1} '/' info.perturbation{:} '/'];
+    filename = [folder 'set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '.mp4']; 
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
     open(obj);
@@ -103,7 +103,7 @@ elseif(mode == "tme")
     1     1     1];  
     
     tiledlayout(1,2,'TileSpacing','Compact','Padding','Compact');
-    sgtitle(['Set ' num2str(info(1)) ' exp ' num2str(info(2)) ' roi ' num2str(info(3))], 'FontSize', 20)
+    sgtitle(['Set ' num2str(info.set) ' exp ' num2str(info.exp) ' roi ' num2str(info.roi)])
     
     % Iterate through the stack
     for i=2:size(mystack,3)

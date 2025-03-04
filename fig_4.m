@@ -24,7 +24,7 @@ tbl_fit.prolif_mean = cell(height(tbl_fit),1);
 tbl_fit.dose(tbl_fit.perturbation == "control") = 0;
 
 % Define the cellines
-cellines = unique(tbl.HGCC);
+cellines = unique(tbl_fit.HGCC);
 
 for i=1:height(tbl_fit)
     % Add speed
@@ -61,7 +61,7 @@ for i=1:length(cellines)
             
             subtable_2 = subtable_1(subtable_1.dose == dose,:);
             
-            idx = logical((tbl.HGCC == string(hgcc)) .* (tbl.perturbation == string(pert)) .* (tbl.dose == dose));
+            idx = logical((tbl_fit.HGCC == string(hgcc)) .* (tbl_fit.perturbation == string(pert)) .* (tbl_fit.dose == dose));
             
             max_frames = max(subtable_2.frames);
             deltat_max = max(subtable_2.delta_t);

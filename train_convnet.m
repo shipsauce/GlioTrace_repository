@@ -62,7 +62,7 @@ RandScale=[0.5 2]);
 augimdsTrain = augmentedImageDatastore(inputSize(1:2),imdsTrain,DataAugmentation=augmenter);
 augimdsValidation = augmentedImageDatastore(inputSize(1:2),imdsValidation, DataAugmentation=augmenter);
 
-numClasses = 5;
+numClasses = 6;
 %% construct convnet
 layers = [
     imageInputLayer(inputSize, 'Name', 'input', 'Normalization', 'none')

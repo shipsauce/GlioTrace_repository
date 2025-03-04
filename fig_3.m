@@ -9,62 +9,82 @@ metadata=readtable('/Volumes/MyGroups$/Iron/konfokalmikroskop/Hitesh Montage and
 stacktable=build_stack_table(metadata,'vasc_stacks_complete.txt');
 subtable = stacktable(stacktable.perturbation == "control",:);
 
+% Exclude video with corrupted intensity in beginning
+subtable(31,:) = [];
+
+subtable = sortrows(subtable,"HGCC","ascend");
 stacktable_const = parallel.pool.Constant(subtable);
 
 % Create empty variables for storing time-resolved  and average
 % vessel measurements
 vessel_length = {};
 vessel_length_average = [];
+mean_intensityy = {};
+
 
 % Start parallel pool
-pool = gcp(); 
+% pool = gcp(); 
 
 %%
 % Loop through the image stacks
-parfor i=1:height(subtable)
+for i=31:height(subtable)
     % Load the stack
     stack = load(stacktable_const.Value.file{i});
-    % stack = load(subtable.file{i});
     stack = stack.stack;
 
     % Save green and red channel in separate variables
     gbm=stack.Tstack;
     vasc=stack.Vstack;
+    % 
+    % num_frames = size(vasc, 3);
+    % mean_intensity = mean(squeeze(mean(mean(vasc, 1), 2)));  % Compute mean intensity per frame
+    % 
+    % for m = 1:num_frames
+    %     vasc(:, :, m) = vasc(:, :, m) .* ((12*mean_intensity)/mean(mean(vasc(:,:,m))));
+    % end
 
+    % vasc = medfilt1(vasc, 20, 'truncate', 3);
+
+    info = stacktable_const.Value(i,:);
+    
     % Quantify vasculature length across stack (red channel)
     if(contains(stacktable_const.Value.HGCC(i), "3179"))
-            sensitivity = 0.5;
-            [vasc_length_stack,~] = quantify_vasculature(vasc, sensitivity);
+            sensitivity = 0.7;
+            [vasc_length_stack,~] = quantify_vasculature_v3(vasc,info, net_trained);
         elseif(contains(stacktable_const.Value.HGCC(i),"3028"))
             sensitivity = 0.45;
-            [vasc_length_stack,~] = quantify_vasculature(vasc, sensitivity);
+            [vasc_length_stack,~] = quantify_vasculature_v3(vasc,info, net_trained);
         elseif(contains(stacktable_const.Value.HGCC(i), "3220"))
             sensitivity = 0.6;
-            [vasc_length_stack,~] = quantify_vasculature(vasc, sensitivity);
+            [vasc_length_stack,~] = quantify_vasculature_v3(vasc,info, net_trained);
         elseif(contains(stacktable_const.Value.HGCC(i), "3054"))
             sensitivity = 0.5;
-            [vasc_length_stack,~] = quantify_vasculature(vasc, sensitivity);
+            [vasc_length_stack,~] = quantify_vasculature_v3(vasc,info, net_trained);
         else
             sensitivity=0.5;
-            [vasc_length_stack,~] = quantify_vasculature(vasc, sensitivity);
+            [vasc_length_stack,~] = quantify_vasculature_v3(vasc,info, net_trained);
     end
 
+    mean_intensity = squeeze(mean(mean(vasc, 1), 2));  % Compute mean intensity per frame
 
     % Save to variables
     vessel_length{i} = vasc_length_stack;
     vessel_length_average(i) = mean(cell2mat(vasc_length_stack));
+    mean_intensityy(i) = {mean_intensity};
     i
 end
 
 % Append variables to table
 subtable.vessel_length = vessel_length';
 subtable.vessel_length_average = vessel_length_average';
+subtable.mean_intensities = mean_intensityy';
+
 
 %% Save table
 vessel_statistics = subtable;
 save(['vessel_statistics_' char(datetime('today')) '.mat'], 'vessel_statistics')
 
-%% Fig 3A, B 
+%% Fig 3B 
 % Segment tif stacks for figure
 
 folderpath='/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/fig_3_seg';
@@ -83,7 +103,7 @@ frames_per_second = fps; % Adjust frame rate as needed
 tif_stack = cell(length(fileList),1);
 tumor = [];
 vasc = [];
-
+%%
 % Loop through each TIFF stackvfame
 for i = 1:length(fileList)
 
@@ -108,21 +128,23 @@ for i = 1:length(fileList)
          vasc(:,:,t) = current_frame(:,:,1);
     end
 
+    info = 'tif_stack';
+
      if(contains(filename, "3179"))
             sensitivity = 0.5;
-            [~, segstack] = quantify_vasculature(vasc, sensitivity);
+            [~, segstack] = quantify_vasculature_v3(vasc,info,net_trained);
         elseif(contains(filename,"3028"))
             sensitivity = 0.45;
-            [~, segstack] = quantify_vasculature(vasc, sensitivity);
+            [~, segstack] = quantify_vasculature_v3(vasc,info, net_trained);
         elseif(contains(filename, "3220"))
             sensitivity = 0.6;
-            [~, segstack] = quantify_vasculature(vasc, sensitivity);
+            [~, segstack] = quantify_vasculature_v3(vasc,info, net_trained);
         elseif(contains(filename, "3054"))
             sensitivity = 0.5;
-            [~, segstack] = quantify_vasculature(vasc, sensitivity);
+            [~, segstack] = quantify_vasculature_v3(vasc,info, net_trained);
         else
             sensitivity=0.5;
-            [~, segstack] = quantify_vasculature(vasc, sensitivity);
+            [~, segstack] = quantify_vasculature_v3(vasc,info, net_trained);
     end
 
     % Save segmented images also as a tif-stack
@@ -156,8 +178,8 @@ end
 % Make time-resolved plot of the relative change (values are set-wise normalized to control)
 
 % Load table
-load('vessel_statistics_15-Oct-2024.mat')
-subtable = vessel_statistics;
+% load('vessel_statistics_15-Oct-2024.mat')
+% subtable = vessel_statistics;
 cellines = unique(subtable.HGCC); % Retrieve the names of HGCC cellines
 
 % Loop through the cell lines
@@ -211,9 +233,10 @@ for i=1:length(cellines)
         % Set-wise normalization of values achieved by dividing with
         % control mean
         tumor_norm = cellfun(@(x) x./ctrl_mean, tumor_filled, 'UniformOutput',false);
+        ctrl_norm = cellfun(@(x) x./ctrl_mean, ctrl_filled, 'UniformOutput',false);
         
         % Append set curves to variable for entire celline
-        values_ctrl = [values_ctrl; ctrl_filled];
+        values_ctrl = [values_ctrl; ctrl_norm];
         values_tumor = [values_tumor; tumor_norm];
         
     end
@@ -225,14 +248,14 @@ for i=1:length(cellines)
     % Loop through values
     for m=1:height(values_ctrl)
         vals = values_ctrl{m}'; % Extract values from cell array
-        vals = vals./vals(1) * 100; % Convert to procentual change
+        vals = vals./median(vals(1:5)) * 100; % Convert to procentual change
         ctrl_change(m,1:length(vals)) = vals;
     end
     
     % Do the same for curves from tumor region
     for m=1:height(values_tumor)
         vals = values_tumor{m}'; 
-        vals = vals./vals(1) * 100; 
+        vals = vals./median(vals(1:5)) * 100; 
         tumor_change(m,1:length(vals)) = vals;
     end
     
@@ -268,7 +291,7 @@ fontsize('scale',1.5)
 % Make violin plot of AUC of time-resolved change based on set-wise normalized curves (tumor vs control)
 
 % Retrieve the names of HGCC cellines
-subtable = vessel_statistics;
+% subtable = vessel_statistics;
 cellines = unique(subtable.HGCC);
 
 tumor_auc = nan(78,6);
@@ -325,9 +348,13 @@ for i=1:length(cellines)
         % Set-wise normalization of values achieved by dividing with
         % control mean
         tumor_norm = cellfun(@(x) x./ctrl_mean, tumor_filled, 'UniformOutput',false);
+        ctrl_norm = cellfun(@(x) x./ctrl_mean, ctrl_filled, 'UniformOutput',false);
+        %ctrl_norm=ctrl_filled;
+        %tumor_norm = tumor_filled;
         
-        % Append set curves to variable for entire celline
-        values_ctrl = [values_ctrl; ctrl_filled];
+        % % Append set curves to variable for entire celline
+        % values_ctrl = [values_ctrl; ctrl_filled];
+        values_ctrl = [values_ctrl; ctrl_norm];
         values_tumor = [values_tumor; tumor_norm];
         
     end
@@ -339,14 +366,14 @@ for i=1:length(cellines)
     % Loop through values
     for m=1:height(values_ctrl)
         vals = values_ctrl{m}'; % Extract values from cell array
-        vals = vals./vals(1) * 100; % Convert to procentual change
+        vals = vals./median(vals(1:5)) * 100; % Convert to procentual change
         ctrl_change(m,1:length(vals)) = vals;
     end
     
     % Do the same for curves from tumor region
     for m=1:height(values_tumor)
         vals = values_tumor{m}'; 
-        vals = vals./vals(1) * 100; 
+        vals = vals./median(vals(1:5)) * 100;
         tumor_change(m,1:length(vals)) = vals;
     end
     
@@ -372,7 +399,7 @@ fontsize('scale',1.5)
 
 ax=gca;
 ax.Box = 1;
-ax.YLim = [-40 300];
+ax.YLim = [-10 220];
 
 %% Calculate significance from AUC values
 p_values=[];
@@ -385,8 +412,8 @@ end
 % Calculate vasculature association and microglia association statistics
 
 % Load table
-% tbl = load("slice_statistics_03-Sep-2024.mat");
-% tbl = tbl.slice_statistics;
+tbl = load("slice_statistics_03-Sep-2024.mat");
+tbl = tbl.slice_statistics;
 
 % Force control samples to have zero dose
 tbl.dose(tbl.perturbation == "control") = 0;

@@ -30,22 +30,13 @@ stacktable=build_stack_table(metadata,'saved_stacks_complete.txt');
 
 %% Define the set of stacks to be analyzed
 
-
 cellines= unique(stacktable.HGCC); % Retrieve the names of HGCC cellines
 
-subtable = []; % Initialize array to store subset
+idx = logical((stacktable.perturbation == "control") | ...
+    (stacktable.perturbation == "thapsigargin") | ...
+    (stacktable.perturbation == "dasatinib"));
 
-perturbation = "control"; % Define the subset
-
-if(perturbation == "all")
-    subtable = stacktable;
-else
-    for i=1:length(cellines)
-        hgcc = cellines{i};
-        tab = (stacktable.perturbation == perturbation) .* strcmp(stacktable.HGCC,hgcc);
-        subtable = [subtable; stacktable(logical(tab),:)];
-    end
-end
+subtable = stacktable(idx,:);
 
 %% Calculate statistics
 
@@ -59,10 +50,10 @@ traxs = {};
 trays = {};
 props = {};
 
-% pool = gcp(); % Start parallel pool
+pool = gcp(); % Start parallel pool
 
 % Iterate through the stacks
-for i=1:height(subtable)
+parfor i=1:height(subtable)
     empty_video = false;
     fprintf('done %f per cent \n',round(i/height(subtable)*100));
     
@@ -139,10 +130,14 @@ for i=1:height(subtable)
     props{i} = phenotypes;
 
     % Visualize tracking and classification
-    mode = "morphology";
-    vis_tracking(traX,traY,gbm, vasc,subtable(i,[1 2 3]), phenotypes, mode, startidx);
 
-    i
+    if((mod(i,10) == 0))
+        mode = "morphology";
+        vis_tracking(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx);
+    
+        mode = "tme";
+        vis_tracking(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx);
+    end
 end
 
 %% Merge stacktable with calculated statistics

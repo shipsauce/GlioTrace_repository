@@ -19,6 +19,7 @@ numCells = size(x,2);
 
 % If x and y are matrices in the shape time x cells
 if(numCells > 1)
+    
     % Initialize an array to store speeds
     speeds = [];
     

@@ -60,16 +60,16 @@ plotCellTrajectory(tbl_fit.Viterbi_paths2{1885,1},tbl_fit.traxs{1885,1}, tbl_fit
 % Fig 2H
 mode = "mean";
 morph = "morph";
-perturbation = {"PIK 75 HCl"};
+perturbation = {"control"};
 varnames = {'Branching','Diffuse translocation','Junk','Locomotion',['Perivascular' ' translocation'],'Round'};
 tbl_ext = plot_proportions(tbl_fit, mode, perturbation, varnames,morph);
 
-% Fig 2I, K, L
+% Fig 2I, J, K
 celline = "U3013MG";
 perturbation = "control";
 plot_angles_and_speed(tbl_ext, celline, perturbation)
 
-% Fig J
+% Fig L
 u=unique(tbl_fit.HGCC);
 F=[];
 for i=1:length(u)

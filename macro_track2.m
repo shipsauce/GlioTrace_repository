@@ -31,7 +31,7 @@ function [cellsx,cellsy,intensity,FEAT,VASC]=macro_track2(mystack,vasc,sigmah,hs
 debug=false;    
 
 % Create a Logarithm-of-Gaussian filter
-    h1 = fspecial('log', hsizeh, sigmah);
+h1 = fspecial('log', hsizeh, sigmah);
 
 % Create structures for storing cell coordinates and associated intensities
 cellsy={};
@@ -164,8 +164,11 @@ for i=1:size(mystack,3)
          end
     end
     
+    cellsy{i} = ys;
+    cellsx{i} = xs;
+
     % As long as frame is not empty on cells, extract snapshots
-    if(~isempty(cellsy{i}))
+    if(~isempty(xs))
         [featuresA, pointsA] = extractFeatures(medfilt2(im), [xs ys],'Method','Block','BlockSize',blocksize);
         [featuresB, pointsB] = extractFeatures(medfilt2(im_vasc), [xs ys],'Method','Block','BlockSize',blocksize);
         
@@ -178,13 +181,13 @@ for i=1:size(mystack,3)
         % Save snapshots and intensity values of coordinates
         FEAT{i}=featuresA;
         VASC{i}=featuresB;
-        f2 = sub2ind(size(im2),pointsA(:,1), pointsB(:,2));
-        intensity{i} = im2(f2);
+        f2 = sub2ind(size(im),pointsA(:,1), pointsB(:,2));
+        intensity{i} = im(f2);
     end
     
     % Debug mode displays green channel separately & green and red channel
     % combined
-    if(debug)
+    if(debug && ~isempty(xs))
         subplot(1,2,1)
         jm=cat(3,medfilt2(im_vasc),medfilt2(im),0*im);
         imshow(jm/255);

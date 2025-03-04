@@ -21,7 +21,7 @@ function tbl = fit_apply_hmm_v3(tbl)
 %            Viterbi_paths2 - corrected observation sequence (matrix;
 %                       row=frame, col=cell, entries=morph. label)
 %
-% @authors: Madeleine Skeppås
+% @authors: Madeleine Skeppås, Sven Nelander
 % @date: 15012025
 
 % Add empty columns to table

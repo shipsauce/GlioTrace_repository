@@ -1,4 +1,4 @@
-function [vasc_length_stack, segstack] = quantify_vasculature(Vstack, sensitivity)
+function [vasc_length_stack, segstack] = quantify_vasculature(Vstack, sensitivity, info)
 % This function takes the red channel of a brain slice stack and 
 %
 % Input parameters:
@@ -14,13 +14,20 @@ function [vasc_length_stack, segstack] = quantify_vasculature(Vstack, sensitivit
 % @date: 17012025
     
 % Toggle to enter debug mode
-debug = 0;
+debug = 1;
 
 vasc_length_stack = {};
 segstack = [];
 
 if(debug)
+    close all force
+    figure('Renderer', 'painters', 'Position', [500 500 1500 1500])
     tiledlayout(2,2,"TileSpacing","compact","Padding","compact")
+    folder = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/Final_vasc_inspection_feb_2025/' info.HGCC{1} '/'];
+    filename = [folder 'set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '_' info.vessel_origin{:} '.mp4'];
+    obj=VideoWriter(filename,'MPEG-4');
+    obj.FrameRate = 5;
+    open(obj);
 end
 
 % Iterate through the images of the stack
@@ -31,11 +38,12 @@ for i=1:size(Vstack,3)
     im = medfilt2(im);
     im = imgaussfilt(im,2);
     im_bin = imbinarize(im,"adaptive","ForegroundPolarity","bright","Sensitivity",sensitivity);
+    im_bin = imbinarize(im,0.2);
 
     % Remove objects that are too small or have to low eccentricity
     imlab = bwlabel(im_bin);
     regs = regionprops(imlab,'Eccentricity', 'Area');
-    im_cleared = ismember(imlab, find((([regs.Eccentricity] > 0.5) .* [regs.Area] > 700)));
+    im_cleared = ismember(imlab, find((([regs.Eccentricity] > 0.5) + [regs.Area] > 700)));
     
     % Skeletonize using the medial axis transform
     skel = bwskel(im_cleared,'MinBranchLength',10);
@@ -60,11 +68,19 @@ for i=1:size(Vstack,3)
         nexttile(2)
         imshowpair(im,im_cleared)
         nexttile(3)
-        imshow(im)
+        % imshow(im)
+        imshow(cat(3, im, zeros(size(im)), zeros(size(im))))
         nexttile(4)
         plot(cell2mat(vasc_length_stack))
         hold on
+        drawnow
+        frame=getframe(gcf);
+        writeVideo(obj,frame);
     end
+end
+
+if(debug)
+    close(obj);
 end
 
 end

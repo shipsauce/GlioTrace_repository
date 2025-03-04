@@ -36,6 +36,10 @@ else
     for i=1:height(tbl)
         % Same as above but using HMM corrected morphology labels
         viterbi_paths = tbl.Viterbi_paths{i};
+
+        % Filter out sequences shorter than 4 frames
+        viterbi_paths = viterbi_paths(cell2mat(cellfun(@length, viterbi_paths, 'UniformOutput', false)) > 3);
+
         modeResults = cell2mat(cellfun(@mode, viterbi_paths, 'UniformOutput', false));
         stats = array2table(histcounts(modeResults, 1:7), 'VariableNames',varnames);
         majority_morphs = [majority_morphs; stats];

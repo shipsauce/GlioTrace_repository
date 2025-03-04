@@ -27,7 +27,7 @@ for i = 1:length(sequence)
         currentSubsequence = [currentSubsequence, i];
     else
         % If the current element does not match, check if the current subsequence is valid
-        if length(currentSubsequence) >= 3
+        if length(currentSubsequence) > 3
             subsequences{end+1} = currentSubsequence;
         end
         % Reset the current subsequence
@@ -36,7 +36,7 @@ for i = 1:length(sequence)
 end
 
 % Final check in case the sequence ends with a valid subsequence
-if length(currentSubsequence) >= 3
+if length(currentSubsequence) > 3
     subsequences{end+1} = currentSubsequence;
 end
 end

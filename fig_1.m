@@ -45,10 +45,11 @@ subtable.growth = sum_green';
 growth_statistics = subtable;
 save(['growth_statistics_' char(datetime('today')) '.mat'], 'growth_statistics')
 
-%% Fig 1F
+%% Fig 1F, G, H
 
 % ---------------------- Plot the growth ---------------------------------
 % Load table
+clear all
 load("growth_statistics_22-Nov-2024.mat");
 
  % Retrieve the names of HGCC cellines
@@ -66,8 +67,6 @@ col = [
 
 
 leg1=[];
-
-clear all
 
 % Only include the ROIs which are labelled control
 stacktable_ctrl = growth_statistics(growth_statistics.perturbation == "control",:);
@@ -376,6 +375,8 @@ for i=1:length(cellines)
     t=0:deltat_min:(deltat_min*(height(sd_um)-1));
   
     % Plot mean + standard deviation (bold line thus becomes MSD)
+    subplot(3,1,3)
+    hold on
     p = stdshade(t,sd_um', 0.1, col(i,:), [hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')'], '-','none',8);
     leg1 = [leg1 p];
     ax=gca;
@@ -402,4 +403,123 @@ msd_norm = 4 * D * t .^ alpha;
 plot(t,msd_norm, 'LineStyle',':', 'Color','k', 'LineWidth', 2)
 
 set(gca, 'XScale', 'log', 'YScale', 'log')
+
+%% Supplementary figure S1
+
+% Build TIF table from textfile
+tab=readtable('fig1_viability_stainings.txt','ReadVariableNames',false,'delimiter','\t');
+tab.Properties.VariableNames{1} = 'Folderpath';
+tab.Day = zeros(height(tab),1);
+tab.Channel = cell(height(tab),1);
+tab.Well = cell(height(tab),1);
+
+%% Extract metadata on files
+
+invalid_rows = [];
+
+for i=1:height(tab)
+
+    try
+        % Day
+        tab.Day(i) = str2double(extractBetween(tab.Folderpath{i}, 'Day_', '/'));
+
+        % Channel
+        tab.Channel{i} = regexprep(char(regexp(tab.Folderpath{i}, '/([^/]+)(?=/[^/]*$)', 'match')), '/', '');
+        
+        % Well
+        tab.Well{i} = char(regexp(tab.Folderpath{i}, '([a-zA-Z]?\d+)(?=\.tif)', 'match'));
+        
+        if(length(char(regexp(tab.Folderpath{i}, '([a-zA-Z]?\d+)(?=\.tif)', 'match'))) == 1)
+            tab.Well{i} = [];
+        end
+
+        if(any(cellfun(@isempty, table2cell(tab(i, :)))))
+            invalid_rows = [invalid_rows; i];
+        elseif(contains(tab.Folderpath{i},'results', 'IgnoreCase',true))
+            invalid_rows = [invalid_rows; i];
+        end
+
+    catch
+        invalid_rows = [invalid_rows; i];
+    end
+
+end
+
+tab(invalid_rows,:) = [];
+tab((tab.Channel == "Green" | tab.Channel == "Red-Green-Blue"),:) = [];
+
+%%
+
+Cell_count = zeros(height(tab), 1);
+
+stacktable_const = parallel.pool.Constant(tab);
+
+% Start parallel pool
+pool = gcp(); 
+
+parfor i=1:height(tab)
+    % Get path
+    path = stacktable_const.Value.Folderpath{i};
+    
+    % Read TIF
+    im = imread(path);
+
+    if(stacktable_const.Value.Channel{i} == "Blue")
+        im=im(:,:,3);
+    else
+        im=im(:,:,1);
+    end
+
+    % Calculate the number of cells in each channel
+    [count, imf, filtered_peaks, ~] = count_cells(im);
+    % imshowpair(imf,filtered_peaks)
+    % hold on
+
+    % Save count
+    Cell_count(i) = count;
+    i
+end
+
+tab.Cell_count = Cell_count;
+
+%% Calculate % of Ethd1+/Dapi+ cells
+
+tab_sorted = sortrows(tab, ["Day", "Well"]);
+
+for i=1:height(tab_sorted)
+    if(mod(i,2))
+        % For odd rows (blue channel)
+        tab_sorted.Ratio_dead_cells(i) = (tab_sorted.Cell_count(i) / tab_sorted.Cell_count(i)) * 100; % 1 
+    else
+        % For even rows (red channel)
+        tab_sorted.Ratio_dead_cells(i) = (tab_sorted.Cell_count(i) / tab_sorted.Cell_count(i-1)) * 100; % Cell count red channel/ cell count blue channel
+    end
+end
+
+%% Bar chart
+
+tbl_red = tab_sorted(tab_sorted.Channel == "Red",:);
+tbl_red(tbl_red.Day == 8,:) = [];
+tbl_red.Day = categorical(tbl_red.Day);
+
+col = [
+  [115/255, 191/255, 184/255];  % First color (Soft Teal)
+  [70/255, 130/255, 180/255];   % Second color (Steel Blue)
+  [255/255, 99/255, 71/255];    % Third color (Tomato Red)
+  [189/255, 183/255, 107/255];  % Fourth color (Olive Drab)
+];
+
+% Plot violin plot of percentage of cells interacting with microglia
+figure;
+dabarplot(tbl_red.Ratio_dead_cells,'groups', tbl_red.Day,'colors', col);
+ax=gca;
+ax.YLim = [0 100];
+ax.Box = 1;
+
+fontsize('scale', 1.5)
+
+ylabel('% Ethd1+/Dapi+ cells')
+xlabel('Day')
+title('Percentage of dead cells')
+
 
