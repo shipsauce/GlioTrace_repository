@@ -30,8 +30,8 @@ To run GlioTrace, clone this repository into your local MATLAB environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/brainslice_manuscript_repo.git
-cd brainslice_manuscript_repo
+!git clone https://github.com/yourusername/brainslice_manuscript_repo.git
+!cd brainslice_manuscript_repo
 ```
 
 ## Demo code to get you started
