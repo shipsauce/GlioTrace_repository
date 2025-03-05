@@ -3,7 +3,7 @@ GlioTrace is a novel ex vivo imaging and AI-based analytical framework that enab
 
 ## Whole-specimen analysis of individual cell dynamics
 
-![Whole-specimen analysis of individual cell dynamics](BS6_3013_mouse2zoom_A02.gif)
+![Whole-specimen analysis of individual cell dynamics](BS6_3013_mouse2zoom_A02.gif) ![Whole-specimen analysis of individual cell dynamics](set_35_exp_162_roi_7.gif) 
 
 
 
