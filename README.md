@@ -3,9 +3,10 @@ GlioTrace is a novel ex vivo imaging and AI-based analytical framework that enab
 
 ## Multi-object cell tracking in whole-specimen PDCX brain slices
 
-<p>
-  <img src="BS6_3013_mouse2zoom_A02.gif" width="55%" style="float: left; margin-right: 5%;" />
-  <img src="set_35_exp_162_roi_7.gif" width="45%" style="float: left;" />
+<p align="left">
+  <img src="BS6_3013_mouse2zoom_A02.gif" width="55%" />
+  <span style="display:inline-block; width:5%;"></span>
+  <img src="set_35_exp_162_roi_7.gif" width="45%" />
 </p>
 
 
