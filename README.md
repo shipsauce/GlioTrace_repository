@@ -17,9 +17,13 @@ Here, colors represent the different morphologies assigned by a convolutional ne
   <img src="3dplot.gif" width="54.3%" />
 </p>
 
-## Framework overview
+## GlioTrace framework overview
 
-Preprocessing and analysis of image data happens in a discrete set of steps as follows using the functions provided in this repo.
+Preprocessing and analysis of image data happens in a discrete set of steps using the functions provided in this repo.
+
+
+![Flowchart of framework](codebase_flowchart.svg)
+
 
 
 ## Running the framework
