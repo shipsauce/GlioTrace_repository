@@ -19,9 +19,7 @@ Here, colors represent the different morphologies assigned by a convolutional ne
 
 ## Framework overview
 
-Preprocessing and analysis of image data happens in a discrete set of steps as follows using the functions provided in this repo;
-
-insert flowchart
+Preprocessing and analysis of image data happens in a discrete set of steps as follows using the functions provided in this repo.
 
 
 ## Running the framework
