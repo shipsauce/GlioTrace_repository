@@ -102,7 +102,7 @@ for j=startidx+1:length(cellsx)
     active_tracks=find(~isnan(latest_pos(:,1)));
     
     % Calculate the pairwise distances between predicted and measured positions
-    cost=pdist2(x_hat_minus([1,3],:)', current_pos(:,[1,2]));
+    cost=pdist2(single(x_hat_minus([1,3],:)'), single(current_pos(:,[1,2])));
 
     try
         % Elements in the cost matrix that are nan are set to 1000

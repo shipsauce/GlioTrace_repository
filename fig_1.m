@@ -1,5 +1,5 @@
-% Fig 1
-% This script produces all the material seen in figure 1 of the paper.
+%% Fig 1
+% This script produces material seen in figure 1 of the paper.
 %
 % @authors: Madeleine Skeppås
 % @date: 15012025
@@ -413,7 +413,7 @@ tab.Day = zeros(height(tab),1);
 tab.Channel = cell(height(tab),1);
 tab.Well = cell(height(tab),1);
 
-%% Extract metadata on files
+% Extract metadata on files
 
 invalid_rows = [];
 
@@ -448,8 +448,6 @@ end
 tab(invalid_rows,:) = [];
 tab((tab.Channel == "Green" | tab.Channel == "Red-Green-Blue"),:) = [];
 
-%%
-
 Cell_count = zeros(height(tab), 1);
 
 stacktable_const = parallel.pool.Constant(tab);
@@ -457,6 +455,7 @@ stacktable_const = parallel.pool.Constant(tab);
 % Start parallel pool
 pool = gcp(); 
 
+% Calculate the number of cells in blue and red channels
 parfor i=1:height(tab)
     % Get path
     path = stacktable_const.Value.Folderpath{i};
@@ -470,10 +469,8 @@ parfor i=1:height(tab)
         im=im(:,:,1);
     end
 
-    % Calculate the number of cells in each channel
+    % Calculate the number of cells
     [count, imf, filtered_peaks, ~] = count_cells(im);
-    % imshowpair(imf,filtered_peaks)
-    % hold on
 
     % Save count
     Cell_count(i) = count;
@@ -482,7 +479,7 @@ end
 
 tab.Cell_count = Cell_count;
 
-%% Calculate % of Ethd1+/Dapi+ cells
+% Calculate % of Ethd1+/Dapi+ cells
 
 tab_sorted = sortrows(tab, ["Day", "Well"]);
 
@@ -496,7 +493,7 @@ for i=1:height(tab_sorted)
     end
 end
 
-%% Bar chart
+% Bar chart
 
 tbl_red = tab_sorted(tab_sorted.Channel == "Red",:);
 tbl_red(tbl_red.Day == 8,:) = [];

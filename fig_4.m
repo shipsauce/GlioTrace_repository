@@ -1,6 +1,8 @@
-% Fig 4
-% This script produces all the material seen in figure 4 of the paper.
-
+%% Fig 4
+% This script produces material seen in figure 4 of the paper.
+%
+% @authors: Madeleine Skeppås
+% @date: 15012025
 %% Add calculations of speed and average adMAD to the table
 
 % Generate table with additional information on morphology ratio

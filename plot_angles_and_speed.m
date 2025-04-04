@@ -1,4 +1,4 @@
-function plot_angles_and_speed(tbl_ext, celline, perturbation)
+function [cell_tab, data] = plot_angles_and_speed(tbl_ext, celline, perturbation)
 % This function plots the turning angle distribution (TAD) and cell speed
 % of individual cells from different morphological cateogories for a given
 % cell line of interest. Based on information in the stacktable, a new
@@ -11,6 +11,10 @@ function plot_angles_and_speed(tbl_ext, celline, perturbation)
 %   tbl_ext - stacktable
 %   celline - hgcc celline of interest
 %   perturbation - perturbation of interest
+
+% Output parameters:
+%   cell_tab - table with individual cell statistics
+%   data - data used to generate the violin plot
 %   
 % @authors: Madeleine Skeppås
 % @date: 140624

@@ -106,14 +106,13 @@ for i=1:length(cellines)
                 
                 A_est_avg(:,:,m) = A_est;
                 pi_est_avg(:,:,m) = pi_est;
-                m
             end
 
             tbl.A_est(idx) = {mean(A_est_avg,3)};
             tbl.pi_est(idx) = {mean(pi_est_avg,3)};
         end
     end
-    i
+    fprintf(['Fit HMM parameters for celline: ' hgcc '...\n'])
 end
 
 % ------------------------------ Clean tracks ----------------------------
@@ -148,8 +147,6 @@ for i=1:height(tbl)
     tbl.Viterbi_paths(i) = {viterbi_paths};
 
     tbl.Viterbi_paths2(i) = {viterbi_paths2};
-
-    i
 end
 
 end

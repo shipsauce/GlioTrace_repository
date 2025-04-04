@@ -7,9 +7,10 @@ function tbl_ext = plot_proportions(tbl, style, perturbation, varnames,label)
 % Input parameters:
 %   tbl - stacktable containing viterbi paths
 %   style - switch bewteen plotting mean of ROIs or all ROIs or
-%               perturbations combined
+%               perturbations combined ('mean','all','combined')
 %   varnames - cell array of class names
 %   label - whether to plot morphology or TME label proportions
+%                   ('morph','tme')
 %
 % Output parameters:
 %   tbl_ext - table extended with statistics on dominating morphologies
@@ -19,12 +20,19 @@ function tbl_ext = plot_proportions(tbl, style, perturbation, varnames,label)
     
 majority_morphs = [];
 
+if(nargin < 4)
+    varnames = {'Branching', 'Diffuse translocation', 'Junk','Locomotion', 'Perivascular translocation', 'Round'};
+    label = "morph";
+end
+
 % Iterate through the stack. For each ROI, calculate the dominating
 % identity/label across the time-series for each cell. The sequences used
 % depends on label of interest.
 if(label == "tme")
     for i=1:height(tbl)
         props = tbl.props{i}{8}; % Retrieve the sequences
+        idx = sum(~isnan(props),1) > 3;
+        props = props(:,idx);
         modeResults = mode(props,1); % Calculate dominating label across time
 
         % Use histcounts to calculate the prevalence of different labels
@@ -47,7 +55,11 @@ else
 end
 
 % Add information on the prevalence of different labels to stacktable
-tbl_ext = [tbl majority_morphs];
+try
+    tbl_ext = [tbl majority_morphs];
+catch
+    tbl_ext = [tbl(:,1:25) majority_morphs];
+end
 
 morphes = {};
 dose_count = [];
@@ -58,7 +70,7 @@ dose_list = {};
 % Loop through each perturbation
 for j=1:length(perturbation)
     pert = perturbation{j};
-    tbl_ext_pert = tbl_ext(tbl_ext.perturbation == pert,:);
+    tbl_ext_pert = tbl_ext(tbl_ext.perturbation == string(pert),:);
     dosez = unique(tbl_ext_pert.dose);
     dose_count(j) = length(dosez);
     dose_list{j} = dosez;
@@ -80,12 +92,22 @@ for j=1:length(perturbation)
                     cellcount = table2array(sum(tab(:,27:29),2));
                     lab_counts = table2array((tab(:,27:29))) ./ cellcount;
                 catch %...otherwise try this
-                    cellcount = table2array(sum(tab(:,23:25),2));
-                    lab_counts = table2array((tab(:,23:25))) ./ cellcount;
+                    try
+                        cellcount = table2array(sum(tab(:,23:25),2));
+                        lab_counts = table2array((tab(:,23:25))) ./ cellcount;
+                    catch
+                        cellcount = table2array(sum(tab(:,26:28),2));
+                        lab_counts = table2array((tab(:,26:28))) ./ cellcount;
+                    end
                 end
             else
-                cellcount = table2array(sum(tab(:,[27 28 30 31 32]),2));
-                lab_counts = table2array((tab(:,[27 28 30 31 32]))) ./ cellcount;
+                try
+                    cellcount = table2array(sum(tab(:,[27 28 30 31 32]),2));
+                    lab_counts = table2array((tab(:,[27 28 30 31 32]))) ./ cellcount;
+                catch
+                    cellcount = table2array(sum(tab(:,[26 27 29 30 31]),2));
+                    lab_counts = table2array((tab(:,[26 27 29 30 31]))) ./ cellcount;
+                end
             end
     
             % If mean, save the mean ratios across all ROIs
@@ -182,30 +204,43 @@ if(~(style == "combined"))
     fontsize('scale', 1.5)
     end
 else
-    colors = [0.8660,    0.3290,  0;
-            0.3290,    0.7130,    1.0000;
-            
-            0.9960,    0.5640,    0.2620;
-            0.4540,    0.9210,    0.8540;
-                 0,   0.6390,   0.6390
-            ];
-
-            result_dasat_thaps = reshape([data{1,1}([1 3 4 5 6]), data{2,6}, data{3,4}]', [], 1);
-            bar(cell2mat(result_dasat_thaps), 'stacked', 'BarWidth', 0.7, 'EdgeColor','none')
-
-            ylim([0 1])
-            colororder(colors);
-            legend(varnames([1 2 4 5 6]), 'Location', 'bestoutside');
-            xticks(1:15)
-            xticklabels({"U3013MG ctrl", "U3013MG dasat", "U3013MG thaps", ...
-                "U3054MG ctrl", "U3054MG dasat", "U3054MG thaps", ...
-                "U3179MG ctrl", "U3179MG dasat", "U3179MG thaps", ...
-                "U3180MG ctrl", "U3180MG dasat", "U3180MG thaps", ...
-                "U3220MG ctrl", "U3220MG dasat", "U3220MG thaps"})
-
-            ylabel("% cells")
-
-            title("Effect of dasatinib 32um or thapsigargin 4um treatment")
-            fontsize('scale', 1.5)
+    if(label == "tme")
+        % Plot stacked barcharts from different perturbations together
+        bar([cell2mat(data{1}); cell2mat(data{2})],'stacked', 'BarWidth',0.7, 'EdgeColor','none')
+        legend(varnames, 'Location', 'bestoutside');
+        colororder(pink(7))
+        xticks([1 2])
+        xticklabels({"U3013MG scramble", "U3013MG ANXA1KO"})
+        ylabel('Ratio of cells in class')
+        fontsize('scale', 1.5)
+        ax=gca;
+        ax.LineWidth = 1;
+    else
+        colors = [0.8660,    0.3290,  0;
+        0.3290,    0.7130,    1.0000;
+        
+        0.9960,    0.5640,    0.2620;
+        0.4540,    0.9210,    0.8540;
+             0,   0.6390,   0.6390
+        ];
+    
+        result_dasat_thaps = reshape([data{1,1}([1 3 4 5 6]), data{2,6}, data{3,4}]', [], 1);
+        bar(cell2mat(result_dasat_thaps), 'stacked', 'BarWidth', 0.7, 'EdgeColor','none')
+    
+        ylim([0 1])
+        colororder(colors);
+        legend(varnames([1 2 4 5 6]), 'Location', 'bestoutside');
+        xticks(1:15)
+        xticklabels({"U3013MG ctrl", "U3013MG dasat", "U3013MG thaps", ...
+            "U3054MG ctrl", "U3054MG dasat", "U3054MG thaps", ...
+            "U3179MG ctrl", "U3179MG dasat", "U3179MG thaps", ...
+            "U3180MG ctrl", "U3180MG dasat", "U3180MG thaps", ...
+            "U3220MG ctrl", "U3220MG dasat", "U3220MG thaps"})
+    
+        ylabel("% cells")
+    
+        title("Effect of dasatinib 32um or thapsigargin 4um treatment")
+        fontsize('scale', 1.5)
+    end
 end
 end

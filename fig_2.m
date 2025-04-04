@@ -1,5 +1,5 @@
-% Fig 2
-% This script produces all the material seen in figure 2 of the paper.
+%% Fig 2
+% This script produces material seen in figure 2 of the paper.
 %
 % @authors: Madeleine Skeppås
 % @date: 15012025

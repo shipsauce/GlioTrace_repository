@@ -1,4 +1,4 @@
-%% build_statistics_v3
+function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, output)
 % 
 % Given a set of ROIs (stacks) from a brain slice culture experiment, 
 % this script will calculate ROI-level and cell-level statistics and 
@@ -17,28 +17,34 @@
 %
 % @authors: Madeleine Skeppås, Sven Nelander
 % @date: 05062024
-%% Load necessary networks and create stacktable
-
+%
+% Load neural networks and create stacktable
 metadata=readtable('/Volumes/MyGroups$/Iron/konfokalmikroskop/Hitesh Montage and Overlays/hitesh_metadata.xlsx');
 
-load('trainedNetwork_6class_v2.mat');
-
-load('trainedNetwork_tme.mat')
+load('brainslice_manuscript_repo/trainedNetwork_6class_v2.mat');
+load('brainslice_manuscript_repo/trainedNetwork_tme.mat');
 blocksize=61;
+warning('off', 'all')
 
-stacktable=build_stack_table(metadata,'saved_stacks_complete.txt');
+stacktable=build_stack_table(metadata,stackfile);
 
-%% Define the set of stacks to be analyzed
+% Define the set of stacks to be analyzed
 
 cellines= unique(stacktable.HGCC); % Retrieve the names of HGCC cellines
 
-idx = logical((stacktable.perturbation == "control") | ...
-    (stacktable.perturbation == "thapsigargin") | ...
-    (stacktable.perturbation == "dasatinib"));
+perturbations = "all";
+if strcmp(perturbations, "all")
+    idx = true(height(stacktable), 1); % Select all rows
+else
+    idx = ismember(stacktable.perturbation, perturbations);
+end
+
+% Save the number of input arguments to toggle visualisation later
+args = nargin;
 
 subtable = stacktable(idx,:);
 
-%% Calculate statistics
+% Calculate statistics
 
 % Initialize arrays to store data
 growth_rate=[];
@@ -49,13 +55,26 @@ msd_curves = {};
 traxs = {};
 trays = {};
 props = {};
+vasc_length_stack = {};
+segmented_stack = {};
+vasculature_statistics = table;
+
+if(nargin == 1)
+    output = [];
+end
 
 pool = gcp(); % Start parallel pool
+
+net_const = parallel.pool.Constant(trainedNetwork_6class_v2);
+tme_net_const = parallel.pool.Constant(trainedNetwork_tme);
+
+fprintf('Building slice statistics table...\n')
+fprintf(['Estimated time: ' num2str(ceil((height(subtable) * 22.45)/60)) ' minutes\n'])
 
 % Iterate through the stacks
 parfor i=1:height(subtable)
     empty_video = false;
-    fprintf('done %f per cent \n',round(i/height(subtable)*100));
+    fprintf(['Tracking cells in stack: ' num2str(i) ' / ' num2str(height(subtable)) '...\n']);
     
     % Load the stack
     stack = load(subtable.file{i}); 
@@ -107,7 +126,7 @@ parfor i=1:height(subtable)
     
     if(~empty_video)
         % Classify cell morphology and interactions with the TME
-        properties = classify_tumor_cells(feat, vascc, blocksize, trainedNetwork_6class_v2, trainedNetwork_tme, i);
+        properties = classify_tumor_cells(feat, vascc, blocksize, net_const.Value, tme_net_const.Value, i);
     
 
          % Track cells with a Kalman filter
@@ -129,18 +148,27 @@ parfor i=1:height(subtable)
     trays{i} = traY;
     props{i} = phenotypes;
 
-    % Visualize tracking and classification
 
-    if((mod(i,10) == 0))
+    [vasc_length, segstack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
+    vasc_length_stack(i) = {vasc_length};
+    segmented_stack(i) = {segstack};
+
+    % Visualize tracking and classification if output path is given
+    if(args > 1)
         mode = "morphology";
-        vis_tracking(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx);
+        path = output;
+        vis_tracking_HD(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx,path);
     
         mode = "tme";
-        vis_tracking(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx);
+        vis_tracking_HD(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx,path);
     end
 end
 
-%% Merge stacktable with calculated statistics
+% Merge stacktable with calculated statistics
+vasculature_statistics.vasc_length_stack = vasc_length_stack';
+vasculature_statistics.segmented_stack = segmented_stack';
+vasculature_statistics = [subtable vasculature_statistics];
+
 subtable.traxs = traxs';
 subtable.trays = trays';
 subtable.props = props';
@@ -149,9 +177,6 @@ subtable.sad = sad;
 subtable.adMAD = adMAD';
 subtable.sum_green = sum_green';
 
-%% Save table
-
-save(['slice_statistics_' char(datetime('today')) '.mat'], 'slice_statistics')
-
-
+slice_statistics = subtable;
+end
 

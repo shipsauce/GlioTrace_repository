@@ -24,7 +24,7 @@ if(mode == "morphology")
 
     % Create a VideoWriter object and give it a filename for writing to
     % folder
-    folder = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/Final_morph_inspection_jan_2025/' info.HGCC{1} '/' info.perturbation{:} '/'];
+    folder = ['/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Tracking_vids/Single_cell_revision/morph/'];
     filename = [folder 'set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '.mp4'];
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
@@ -157,4 +157,3 @@ elseif(mode == "tme")
     close(obj);
 end
 end
-
