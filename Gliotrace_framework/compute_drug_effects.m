@@ -1,4 +1,4 @@
-function stats = compute_drug_effects(tbl_in)
+function drug_stats = compute_drug_effects(tbl_in)
 % This function takes a stacktable and adds additional statistics on cell
 % speed and average adMAD and proliferation, as well as MSD parameters for
 % linear fit of log-log MSD for every combination of celline, perturbation and dose.
@@ -43,7 +43,7 @@ formulas = {'speed ~ perturbation:dose + (1|set)', 'D ~ perturbation:dose + (1|s
     'growth_rate ~ perturbation:dose + (1|set)', 'adMAD_mean ~ perturbation:dose + (1|set)'};
 
 no_of_stats = 5; % Number of parameters from lme fit
-no_of_perts = length(unique(tbl_ext.perturbation)) - 1; % Number of perturbations
+no_of_perts = length(unique(tbl_ext.perturbation)) - 1; % Number of perturbations minus control
 size_i = length(unique(tbl_ext.HGCC)); % Number of cell lines
 size_j = length(formulas); % Number of explanatory variables to test 
 size_k = no_of_stats;
@@ -76,7 +76,12 @@ for i=1:length(cellines)
         % Save information on estimate, SE, tStat, DF and pValue
         for k=1:no_of_stats
             for l=1:no_of_perts
-                stats(j,k,l,i) = lme.Coefficients{l+1,k+1}; 
+                try
+                    stats(j,k,l,i) = lme.Coefficients{l+1,k+1}; 
+                catch 
+                    % For some cellines, not all perturbations have been tested
+                    stats(j,k,l,i) = NaN;
+                end
             end
         end
     end
@@ -84,6 +89,15 @@ for i=1:length(cellines)
     fprintf(['Fitting dose-dependent drug effects for cell line: ' cellines{i} '...\n'])
 
 end
-stats = array2table(stats, 'VariableNames', {'Estimate', 'SE', 'tStat', 'DF', 'pValue'}, 'RowNames',formulas);
+
+drug_stats = {};
+
+for i=1:size_i % No of cellines
+    for l=1:size_l % No of perturbations
+        drug_stats{i,l} = array2table(stats(:,:,l,i), 'VariableNames', {'Estimate', 'SE', 'tStat', 'DF', 'pValue'}, 'RowNames',formulas);
+    end
+end
+
+drug_stats = array2table(drug_stats, 'VariableNames', string(sort(setdiff(unique(tab.perturbation), {'control'}))), 'RowNames',cellines);
 
 end

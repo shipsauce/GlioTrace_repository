@@ -21,8 +21,8 @@ function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackf
 % Load neural networks and create stacktable
 metadata=readtable('/Volumes/MyGroups$/Iron/konfokalmikroskop/Hitesh Montage and Overlays/hitesh_metadata.xlsx');
 
-load('brainslice_manuscript_repo/trainedNetwork_6class_v2.mat');
-load('brainslice_manuscript_repo/trainedNetwork_tme.mat');
+load('trainedNetwork_6class_v2.mat');
+load('trainedNetwork_tme.mat');
 blocksize=61;
 warning('off', 'all')
 
