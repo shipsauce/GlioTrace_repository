@@ -22,7 +22,7 @@ Here, colors represent the different morphologies assigned by a convolutional ne
 Preprocessing and analysis of image data happens in a discrete set of steps using the functions provided in this repo.
 
 
-![Flowchart of framework](codebase_flowchart.svg)
+![Flowchart of framework](gliotrace_flowchart.svg)
 
 
 
