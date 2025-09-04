@@ -53,51 +53,54 @@ stats = nan(size_j, size_k, size_l, size_i);
 
 cellines = unique(tbl_ext.HGCC);
 
-% Loop over the cellines
-for i=1:length(cellines)
+if(no_of_perts ~= 0)
+    % Loop over the cellines
+    for i=1:length(cellines)
+        
+        % Extract the relevant data and reformat
+        tab=tbl_ext(logical(tbl_ext.HGCC == string(cellines{i})),:); 
+        tab.Properties.VariableNames(31) = "Perivascular_translocation";
+        tab.Properties.VariableNames(28) = "Diffuse_translocation";
+        tab.alpha = cell2mat(tab.alpha);
+        tab.adMAD_mean = cell2mat(tab.adMAD_mean);
+        tab.prolif_mean = cell2mat(tab.prolif_mean);
+        tab.D = cell2mat(tab.D);
+        tab.HGCC = categorical(tab.HGCC);
+        tab.perturbation = categorical(tab.perturbation);
+        tab.speed = cell2mat(tab.speed);
+        tab.perturbation = reordercats(tab.perturbation, string([{'control'} sort(setdiff(unique(tab.perturbation), {'control'}))']));
     
-    % Extract the relevant data and reformat
-    tab=tbl_ext(logical(tbl_ext.HGCC == string(cellines{i})),:); 
-    tab.Properties.VariableNames(31) = "Perivascular_translocation";
-    tab.Properties.VariableNames(28) = "Diffuse_translocation";
-    tab.alpha = cell2mat(tab.alpha);
-    tab.adMAD_mean = cell2mat(tab.adMAD_mean);
-    tab.prolif_mean = cell2mat(tab.prolif_mean);
-    tab.D = cell2mat(tab.D);
-    tab.HGCC = categorical(tab.HGCC);
-    tab.perturbation = categorical(tab.perturbation);
-    tab.speed = cell2mat(tab.speed);
-    tab.perturbation = reordercats(tab.perturbation, string([{'control'} sort(setdiff(unique(tab.perturbation), {'control'}))']));
-
-    % Iterate over the relations and fit a linear mixed effects model
-    for j=1:length(formulas)
-        lme = fitlme(tab, formulas{j});
-
-        % Save information on estimate, SE, tStat, DF and pValue
-        for k=1:no_of_stats
-            for l=1:no_of_perts
-                try
-                    stats(j,k,l,i) = lme.Coefficients{l+1,k+1}; 
-                catch 
-                    % For some cellines, not all perturbations have been tested
-                    stats(j,k,l,i) = NaN;
+        % Iterate over the relations and fit a linear mixed effects model
+        for j=1:length(formulas)
+            lme = fitlme(tab, formulas{j});
+    
+            % Save information on estimate, SE, tStat, DF and pValue
+            for k=1:no_of_stats
+                for l=1:no_of_perts
+                    try
+                        stats(j,k,l,i) = lme.Coefficients{l+1,k+1}; 
+                    catch 
+                        % For some cellines, not all perturbations have been tested
+                        stats(j,k,l,i) = NaN;
+                    end
                 end
             end
         end
+    
+        fprintf(['Fitting dose-dependent drug effects for cell line: ' cellines{i} '...\n'])
+    
     end
-
-    fprintf(['Fitting dose-dependent drug effects for cell line: ' cellines{i} '...\n'])
-
-end
-
-drug_stats = {};
-
-for i=1:size_i % No of cellines
-    for l=1:size_l % No of perturbations
-        drug_stats{i,l} = array2table(stats(:,:,l,i), 'VariableNames', {'Estimate', 'SE', 'tStat', 'DF', 'pValue'}, 'RowNames',formulas);
+    
+    drug_stats = {};
+    
+    for i=1:size_i % No of cellines
+        for l=1:size_l % No of perturbations
+            drug_stats{i,l} = array2table(stats(:,:,l,i), 'VariableNames', {'Estimate', 'SE', 'tStat', 'DF', 'pValue'}, 'RowNames',formulas);
+        end
     end
+    
+    drug_stats = array2table(drug_stats, 'VariableNames', string(sort(setdiff(unique(tab.perturbation), {'control'}))), 'RowNames',cellines);
+else
+    drug_stats=[];
 end
-
-drug_stats = array2table(drug_stats, 'VariableNames', string(sort(setdiff(unique(tab.perturbation), {'control'}))), 'RowNames',cellines);
-
 end

@@ -25,6 +25,8 @@ for j=1:length(perts)
 
     if(perts{j} == "control")
         col = [0.7,0.7,0.7];
+    elseif(length(doses) == 1)
+        col = [13/255, 59/255, 102/255];
     else
         normVals = (doses - min(doses)) / (max(doses) - min(doses));
         col = [13/255, 59/255, 102/255];
@@ -73,13 +75,15 @@ for j=1:length(perts)
 
             if(~isempty(tab))
                 % Plot curves as mean + standard deviation
-                subplot(2,round(length(cellines)/2),i)
+                if(length(cellines) > 1)
+                    subplot(2,round(length(cellines)/2),i)
+                    title(hgcc)
+                end
                 hold on
                 p = stdshade(t,values, 0.1, col(dose,:), [hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')' ' Perturbation: ' perts{j} ' Dose: ' num2str(doses(dose))], linestyles{i}, markers{i},8);
                 leg1 = [leg1 p];
                 xlabel('Δt (h)')
                 ylabel('% pixels moving')
-                title(hgcc)
                 ax=gca;
                 ax.XLim = [0 80];
                 ax.Box = 1;

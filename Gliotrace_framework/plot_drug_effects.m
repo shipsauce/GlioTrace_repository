@@ -50,7 +50,10 @@ tbl_ext.dose = categorical(tbl_ext.dose);
 
 figure;
 for i=1:length(cellines)
-    subplot(2,round(length(cellines)/2),i)
+    if(length(cellines) > 1)
+        subplot(2,round(length(cellines)/2),i)
+        title(char(cellines{i}))
+    end
     tbl = tbl_ext(logical(tbl_ext.HGCC == string(cellines{i})),:);
     tbl.dose = categorical(tbl.dose);
     tbl.dose = removecats(tbl.dose, string(setdiff(unique(tbl_ext.dose),unique(tbl.dose))));
@@ -60,10 +63,9 @@ for i=1:length(cellines)
         'scatter',1,'scattersize',30,'scatteralpha',0.5,...
         'boxspacing',1, 'boxwidth', 2); 
     
-    % ylim([0 15])
+    ylim([0 10])
     ylabel('ROI-level avg cell speed (um/h)')
     xlabel("Dose (uM)")
-    title(char(cellines{i}))
     ax=gca;
     ax.Box = 1;
     ax.LineWidth = 1;

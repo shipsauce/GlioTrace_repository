@@ -24,6 +24,8 @@ for j=1:length(perts)
 
     if(perts{j} == "control")
         col = [0.7,0.7,0.7];
+    elseif(length(doses) == 1)
+        col = [145/255, 40/255, 54/255];
     else
         normVals = (doses - min(doses)) / (max(doses) - min(doses));
         col = [145/255, 40/255, 54/255];
@@ -134,13 +136,15 @@ for j=1:length(perts)
                 t=0:deltat_min:(deltat_min*(height(sd_um)-1));
         
                 % Plot mean + standard deviation (bold line thus becomes MSD)
-                subplot(2,round(length(cellines)/2),i)
+                if(length(cellines) > 1)
+                    subplot(2,round(length(cellines)/2),i)
+                    title(hgcc)
+                end
                 hold on
                 p = stdshade(t,sd_um', 0.1, col(dose,:), [hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')' ' Perturbation: ' perts{j} ' Dose: ' num2str(doses(dose))], linestyles{i}, markers{i},8);
                 leg1 = [leg1 p];
                 xlabel('t (h)')
                 ylabel('MSD (µm)^2')
-                title(hgcc)
                 ax=gca;
                 ax.XLim = [0 80];
                 ax.Box = 1;
