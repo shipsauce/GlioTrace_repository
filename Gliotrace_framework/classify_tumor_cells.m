@@ -1,4 +1,4 @@
-function properties = classify_tumor_cells(feat, vasc, blocksize, morph_net, trainedNetwork_tme, m)
+function [properties, embeddings] = classify_tumor_cells(feat, vasc, blocksize, morph_net, trainedNetwork_tme, m)
 % This function takes the extracted snapshots from macro_track2 and
 % classifies them two times, once based on morphology and once based on
 % the relation to the surrounding tumor microenvironment as represented by
@@ -39,6 +39,7 @@ mean_image_tme = mean_image_tme.mean_image;
 output_path = '/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Networks_validation_v5/';
 
 properties={}; % Structure for saving classification results
+embeddings = {};
 
 % Iterate through the features of each frame
 for i=1:length(feat)
@@ -51,7 +52,8 @@ for i=1:length(feat)
         
         % Define classes for morphological classification
         classNames = {'Branching','Diffuse translocation', 'Junk','Locomotion', 'Perivascular translocation', 'Round'};
-        
+        % classNames = {'Branching','Diffuse translocation', 'Locomotion', 'Perivascular translocation', 'Round'};
+
         % Create an RGB image from the snapshots
         im = zeros([blocksize blocksize 3]);
         im(:,:,2) = reshape(mat(j,:), [blocksize blocksize]);
@@ -68,6 +70,10 @@ for i=1:length(feat)
         [~, predictedIndex_61] = max(morph_class);
         predictedIndex = predictedIndex_61;
         predictedLabel = onehotdecode(morph_class,classNames,2);
+
+        % folderPath = '/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Stack_16_ROI_9_im_7/';
+        % filename = ['exp_' num2str(m) '_im_' num2str(i) '_cell_' num2str(j) '.tif'];
+        % imwrite(uint8(im), fullfile(folderPath, filename),'tiff')
 
         % In debug mode snapshots are written to a folder
         if(debug)
@@ -121,6 +127,8 @@ for i=1:length(feat)
         
         % Save predicted features to stucture
         properties{i}(j,:) = regs;
+        embeddings{i}(j,:) = predict(morph_net,im_predict,'Outputs', 'relu6');
+        
     end
     
 end

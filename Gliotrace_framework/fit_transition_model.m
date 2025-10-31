@@ -1,4 +1,4 @@
-function [A, pi] = fit_transition_model(sequences, A, B, pi, maxIter, tol, mu, lambda)
+function [A, pi, gammas] = fit_transition_model(sequences, propagated_labels, A, B, pi, maxIter, tol, mu, lambda)
 % Baum-Welch algorithm for multiple observation sequences with known B
 %
 % Input parameters:
@@ -16,18 +16,22 @@ function [A, pi] = fit_transition_model(sequences, A, B, pi, maxIter, tol, mu, l
 %   pi        - Updated initial state distribution
 
     N = size(A, 1); % Number of states
-    M = size(B, 2); % Number of possible observations
 
     prevLogLikelihood = -inf;
+    gammas = {};
 
+    % Iterate until convergence
     for iter = 1:maxIter
         A_num = zeros(N, N);
         A_denom = zeros(N, 1);
         pi_num = zeros(1, N);
         logLikelihood = 0;
 
+        % In each iteration, loop through all sequences and update A, pi,
+        % alpha, beta, gamma, chi for each time step in that sequence.
         for seqIdx = 1:length(sequences)
             observations = sequences{seqIdx};
+            labels = propagated_labels{seqIdx};
             T = length(observations);
 
             % E-step: Compute alpha, beta, gamma, and xi
@@ -40,14 +44,23 @@ function [A, pi] = fit_transition_model(sequences, A, B, pi, maxIter, tol, mu, l
             alpha(1, :) = pi .* B(:, observations(1))';
             alpha(1, :) = alpha(1, :) / sum(alpha(1, :));
             for t = 2:T
-                alpha(t, :) = (alpha(t-1, :) * A) .* B(:, observations(t))';
+                if(labels(t)) % If observaion at time t is propagated, calculate probability without emissions
+                    alpha(t, :) = (alpha(t-1, :) * A);
+                else
+                    alpha(t, :) = (alpha(t-1, :) * A) .* B(:, observations(t))';
+                end
+
                 alpha(t, :) = alpha(t, :) / sum(alpha(t, :));
             end
 
             % Backward algorithm
             beta(T, :) = 1;
             for t = T-1:-1:1
-                beta(t, :) = (A * (B(:, observations(t+1)) .* beta(t+1, :)'))';
+                if(labels(t+1)) % If observaion at time t+1 is propagated, calculate probability without emissions
+                    beta(t, :) = (A * beta(t+1, :)')';
+                else
+                    beta(t, :) = (A * (B(:, observations(t+1)) .* beta(t+1, :)'))';
+                end
                 beta(t, :) = beta(t, :) / sum(beta(t, :));
             end
 
@@ -78,6 +91,9 @@ function [A, pi] = fit_transition_model(sequences, A, B, pi, maxIter, tol, mu, l
 
             % Compute log-likelihood for convergence check
             logLikelihood = logLikelihood + sum(log(sum(alpha, 2)));
+
+            % Save gamma for each sequence, updates at each iteration
+            gammas{seqIdx} = gamma;
         end
 
         % M-step: Update pi and A with regularization

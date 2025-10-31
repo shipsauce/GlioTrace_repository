@@ -1,4 +1,4 @@
-function [traX, traY, x_hat_history, phenotypes, phenonames, Kn_history, startidx] = track_tumor_cells2(cellsx, cellsy, properties)
+function [traX, traY, x_hat_history, phenotypes, phenonames, Kn_history, startidx, propagated_labels] = track_tumor_cells2(cellsx, cellsy, properties)
 % This function takes cell coordinates from macro_track2 and associated
 % properties from classify_tumor_cells and applies a Kalman filter to the
 % cell coordinates to create single-cell trajectories.
@@ -71,6 +71,7 @@ P_minus = F * P * F' + Q;
 
 traX=cellsx{startidx}';
 traY=cellsy{startidx}';
+propagated_labels = zeros(size(traX));
 current_pos = [cellsx{startidx} cellsy{startidx} table2array(properties{startidx})];
 
 % Store phenotypes from the 1st frame in phenotypes object
@@ -94,8 +95,10 @@ for j=startidx+1:length(cellsx)
     
     try
         current_pos=[cellsx{j} cellsy{j} table2array(properties{j})];
+        empty_frame = 0;
     catch
         current_pos = current_pos(:,1:2+n_phenotypes);
+        empty_frame = 1;
     end
     
     % Get the tracks of the latest position which are still monitored
@@ -199,6 +202,7 @@ for j=startidx+1:length(cellsx)
     % Make sure traX,traY have enough new columns to accomodate new tracks
     traX=[traX nan(size(traX,1),length(newtracks))];
     traY=[traY nan(size(traX,1),length(newtracks))];
+    propagated_labels = [propagated_labels zeros(size(traX,1),length(newtracks))];
     
     % Do the same thing for storage of historic estimates
     for kk=1:size(x_hat_history,2)
@@ -213,6 +217,15 @@ for j=startidx+1:length(cellsx)
     % Store the (x,y)-coordinates
     traX(end+1,:)=measurement(:,1)';
     traY(end+1,:)=measurement(:,2)';
+    propagated_labels(end+1,:) = zeros(size(measurement(:,1)'));
+
+    if(empty_frame)
+        propagated_tracks = setdiff(active_tracks, setdiff(oldtracks, oldtracks_keep)); % Exclude tracks that were active 
+                                                                                        % in the last timepoint but were killed this iteration
+        propagated_labels(j-startidx+1,propagated_tracks) = ones(1,length(propagated_tracks));
+    else
+        propagated_labels(j-startidx+1, oldtracks_keep) = ones(1,length(oldtracks_keep));
+    end
     
     % Store the phenotypes
     for ii=1:n_phenotypes

@@ -45,6 +45,7 @@ out={};
 info=[];
 
 for p=1:length(cellines)
+    fprintf(['Building cell table for cell line: ' cellines{p} '...\n'])
     tbl_out=table;
     subtab=tbl_in_full(tbl_in_full.HGCC == string(cellines{p}), :);
 
@@ -111,7 +112,6 @@ for p=1:length(cellines)
             tbl_out = table;
         end
     end
-    fprintf(['Building cell table for cell line: ' cellines{p} '...\n'])
 end
 
 outs.cell_statistics = out;

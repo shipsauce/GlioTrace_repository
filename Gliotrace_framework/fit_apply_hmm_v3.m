@@ -27,6 +27,7 @@ function tbl = fit_apply_hmm_v3(tbl)
 % Add empty columns to table
 tbl.A_est = cell(height(tbl),1);
 tbl.pi_est = cell(height(tbl),1);
+tbl.gammas = cell(height(tbl),1);
 
 N = 6; % Number of states
 M = N; % Number of observation symbols 
@@ -74,23 +75,34 @@ for i=1:length(cellines)
             dose_curr = dosez(k);
             subtable_3 = subtable_2(subtable_2.dose == dose_curr,:);
             sequences = {};
+            propagated_labels = {};
+            tme_features = {};
             idx = logical((tbl.HGCC == string(hgcc)) .* (tbl.perturbation == string(pert)) .* (tbl.dose == dose_curr));
 
             for l=1:height(subtable_3)
-                seqs = subtable_3.props{l};
-                seqs = seqs{end-1};
+                info = subtable_3.props{l};
+                seqs = info{end-1};
+                tme_assoc = info{end};
+                
+                labs = subtable_3.propagated_labels{l};
 
                 for n=1:width(seqs)
                     seq = seqs(:,n);
+                    lab = labs(:,n);
+
                     start = min(find(~isnan(seq)));
                     stop = max(find(~isnan(seq)));
 
                     sequences = [sequences; seq(start:stop)'];
+                    propagated_labels = [propagated_labels; lab(start:stop)'];
+                    tme_features = [tme_features; tme_assoc(start:stop)'];
+
                 end
             end
 
             A_est_avg = zeros(6,6,1000);
             pi_est_avg = zeros(1,6,1000);
+            gammas_it = {};
 
             % Run model fitting with 1000 random versions of A_init
             parfor m=1:1000
@@ -102,14 +114,16 @@ for i=1:length(cellines)
                 A_init = A_init ./ sum(A_init, 2); % Normalize
 
                 % Run model fitting
-                [A_est, pi_est] = fit_transition_model(sequences, A_init, B, pi_init, maxIter, tol, mu, lambda);
+                [A_est, pi_est, gammas] = fit_transition_model(sequences, propagated_labels, A_init, B, pi_init, maxIter, tol, mu, lambda);
                 
                 A_est_avg(:,:,m) = A_est;
                 pi_est_avg(:,:,m) = pi_est;
+                gammas_it{m} = gammas;
             end
 
             tbl.A_est(idx) = {mean(A_est_avg,3)};
             tbl.pi_est(idx) = {mean(pi_est_avg,3)};
+            tbl.gammas(idx) = {gammas_it};
         end
     end
     fprintf(['Fit HMM parameters for celline: ' hgcc '...\n'])

@@ -21,7 +21,8 @@ function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackf
 % Load neural networks and create stacktable
 metadata=readtable('/Volumes/MyGroups$/Iron/konfokalmikroskop/Hitesh Montage and Overlays/hitesh_metadata.xlsx');
 
-load('trainedNetwork_6class_v2.mat');
+load('trainedNetwork_6class_v2.mat'); 
+
 load('trainedNetwork_tme.mat');
 blocksize=61;
 warning('off', 'all')
@@ -52,18 +53,25 @@ sad=[];
 adMAD = {};
 sum_green = {};
 msd_curves = {};
+x_coords = {};
+y_coords = {};
 traxs = {};
 trays = {};
 props = {};
 vasc_length_stack = {};
 segmented_stack = {};
 vasculature_statistics = table;
+cell_snapshots = {};
+vasc_snapshots = {};
+start_indices = [];
+propagated_labs_for_hmm = {};
+embeddings_long = {};
 
 if(nargin == 1)
     output = [];
 end
 
-pool = gcp(); % Start parallel pool
+% pool = gcp(); % Start parallel pool
 
 net_const = parallel.pool.Constant(trainedNetwork_6class_v2);
 tme_net_const = parallel.pool.Constant(trainedNetwork_tme);
@@ -126,14 +134,14 @@ parfor i=1:height(subtable)
     
     if(~empty_video)
         % Classify cell morphology and interactions with the TME
-        properties = classify_tumor_cells(feat, vascc, blocksize, net_const.Value, tme_net_const.Value, i);
+        [properties, embeddings] = classify_tumor_cells(feat, vascc, blocksize, net_const.Value, tme_net_const.Value, subtable.exp(i));
     
 
          % Track cells with a Kalman filter
-        [traX, traY, x_hat_history, phenotypes, phenonames, Kn_history, startidx] = track_tumor_cells2(cellsx, cellsy, properties);
+        [traX, traY, x_hat_history, phenotypes, phenonames, Kn_history, startidx, propagated_labels] = track_tumor_cells2(cellsx, cellsy, properties);
     
         % Connect tracklets of fragmented tracks
-        [traX, traY, phenotypes] = connect_tracklets(traX, traY, phenotypes);
+        [traX, traY, phenotypes, propagated_labels] = connect_tracklets(traX, traY, phenotypes, propagated_labels);
   
     else
         traX = [];
@@ -144,9 +152,16 @@ parfor i=1:height(subtable)
     end
     
     % Save to variables
+    x_coords{i} = cellsx;
+    y_coords{i} = cellsy; 
     traxs{i} = traX;
     trays{i} = traY;
     props{i} = phenotypes;
+    cell_snaps{i} = feat;
+    vasc_snaps{i} = vascc;
+    start_indices(i) = startidx;
+    propagated_labs_for_hmm{i} = propagated_labels;
+    embeddings_long{i} = embeddings;
 
 
     [vasc_length, segstack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
@@ -169,6 +184,8 @@ vasculature_statistics.vasc_length_stack = vasc_length_stack';
 vasculature_statistics.segmented_stack = segmented_stack';
 vasculature_statistics = [subtable vasculature_statistics];
 
+subtable.x_coords = x_coords';
+subtable.y_coords = y_coords';
 subtable.traxs = traxs';
 subtable.trays = trays';
 subtable.props = props';
@@ -176,6 +193,11 @@ subtable.growth_rate = growth_rate;
 subtable.sad = sad;
 subtable.adMAD = adMAD';
 subtable.sum_green = sum_green';
+subtable.cell_snaps = cell_snaps';
+subtable.vasc_snaps = vasc_snaps';
+subtable.startidx = start_indices';
+subtable.propagated_labels = propagated_labs_for_hmm';
+subtable.embeddings_long = embeddings_long';
 
 slice_statistics = subtable;
 end
