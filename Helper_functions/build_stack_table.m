@@ -33,8 +33,14 @@ if(nargin==1)
     t=readtable('filez.txt','ReadVariableNames',false,'delimiter','\t');
     t=t.Var1;
 else
-    t=readtable(files,'ReadVariableNames',false,'delimiter','\t');
-    t=t.Var1;
+    try
+        t=readtable(files,'ReadVariableNames',false,'delimiter','\t');
+        t=t.Var1;
+    catch
+        t=table(files);
+        t.Properties.VariableNames = {'Var1'};
+        t=t.Var1;
+    end
 end
 
 % Extract set, exp and roi from the stack list by iterating through the

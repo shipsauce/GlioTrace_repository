@@ -1,4 +1,4 @@
-function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, output)
+function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, output)
 % 
 % Given a set of ROIs (stacks) from a brain slice culture experiment, 
 % this script will calculate ROI-level and cell-level statistics and 
@@ -19,7 +19,7 @@ function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackf
 % @date: 05062024
 %
 % Load neural networks and create stacktable
-metadata=readtable('/Volumes/MyGroups$/Iron/konfokalmikroskop/Hitesh Montage and Overlays/hitesh_metadata.xlsx');
+metadata=readtable(path_to_metadata);
 
 load('trainedNetwork_6class_v2.mat');
 load('trainedNetwork_tme.mat');
@@ -59,7 +59,7 @@ vasc_length_stack = {};
 segmented_stack = {};
 vasculature_statistics = table;
 
-if(nargin == 1)
+if(nargin == 2)
     output = [];
 end
 

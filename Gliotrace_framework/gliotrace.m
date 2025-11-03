@@ -1,4 +1,4 @@
-function gliotrace_output = gliotrace(stackfile, output_path)
+function gliotrace_output = gliotrace(stackfile, path_to_metadata, output_path)
 % The GlioTrace framework takes a set of stabilized RGB image stacks and 
 % performs cell identification, tracking and classification. The resulting
 % cell tracks and labels are used to fit parameters of a Hidden Markov
@@ -20,10 +20,10 @@ function gliotrace_output = gliotrace(stackfile, output_path)
 % Perform cell tracking and classification, calculate ROI-level statistics
 % and generate corresponding videos saved into the defined output path (if
 % provided)
-if(nargin>1)
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, output_path);
+if(nargin>2)
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, output_path);
 else
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile);
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata);
 end
 
 % Force control samples to have zero dose
