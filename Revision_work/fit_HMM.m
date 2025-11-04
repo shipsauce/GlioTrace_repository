@@ -18,7 +18,8 @@ feature_dependent_transitions = 0; % Toggle on/off
 % LOAD / PREPARE DATA
 [emissions, hard_labels, propagated_labels, tme_features] = convert_data_for_hmm(U3180_ctrl_tbl(U3180_ctrl_tbl.perturbation == "control",:)); % funktionen kan returnera för alla komb
 E = emissions;
-% TEST ON SMALL SUBSET OF EMBEDDINGS
+
+%% TEST ON SMALL SUBSET OF EMBEDDINGS
 E = emissions(1:1000,:);
 propagated_labels = propagated_labels(1:1000,:);
 tme_features = tme_features(1:1000,:);
@@ -51,7 +52,7 @@ X0 = allE(:, keep); % remove dimensions below threshold
 
 % 2) robust center-scale on kept dims
 med = median(X0,1);
-madv = mad(X0,1); % compute mean absolute deviation across dims
+madv = mad(X0,1); % compute median absolute deviation across dims
 madv = max(madv, 1e-3);     % floor MAD for dims with low variance
 Xr = bsxfun(@rdivide, bsxfun(@minus, X0, med), madv); % median-centered, mad-scaled
 
@@ -59,9 +60,17 @@ Xr = bsxfun(@rdivide, bsxfun(@minus, X0, med), madv); % median-centered, mad-sca
 [coeff, score, ~, ~, explained] = pca(Xr);
 cumexp = cumsum(explained);
 % choose ncomp: first that explains 85-95% (try 90%)
-ncomp = find(cumexp > 90, 1, 'first');
+ncomp = find(cumexp > 99.9, 1, 'first');
 if isempty(ncomp), ncomp = min(30, size(score,2)); end
 Z = score(:, 1:ncomp);
+
+% 3b) Map back to cell per cell structure
+idx = cumsum(cellfun(@(x) size(x,1), E));  % row indices
+start_idx = [1; idx(1:end-1)+1];
+for i = 1:Ncells
+    Ti = size(E{i},1);
+    Z_cell{i} = Z(start_idx(i):start_idx(i)+Ti-1, :);  % Ti x ncomp
+end
 
 % 4) k-means on reduced space
 K = 6; % classes
@@ -91,6 +100,12 @@ mu_init(:, keep) = mu_init_kept;
 s_j = mad(allE, 1); % median absolute deviation of each dimension
 s_j = max(s_j, 0.04); % floor deviations to avoid normalizing with very small numbers later on
 
+% Shrunken centroid parameters on reduced PCA space (first ~33 comp)
+s_j = mad(Z,1) * 10;
+s_j = max(s_j,0.02);
+mu_init = Cpc;
+E = Z_cell';
+
 % Initialize random parameters for beta
 % Beta contains the weights for the features influencing the transitions
 beta = cell(K,1);
@@ -107,7 +122,7 @@ for iter = 1:maxIter
     fprintf('EM iteration %d\n', iter);
 
     sum_gamma = zeros(1, K);
-    sum_weighted_E = zeros(K, d);
+    sum_weighted_E = zeros(K, ncomp); % changed from full set of dimensions d to pca comp's ncomp
     total_loglik = 0;
     gamma_all = cell(Ncells,1);
     xi_all = cell(Ncells,1);
@@ -255,9 +270,10 @@ for iter = 1:maxIter
             end
         end
         beta{j} = fit_weighted_multinom(Xtrain, Wtrain, lambda);
+        j
     end
 
-    mu_raw = zeros(K, d);
+    mu_raw = zeros(K, ncomp);
     for k = 1:K
         mu_raw(k, :) = sum_weighted_E(k, :) / (sum_gamma(k) + eps);
     end
@@ -273,11 +289,13 @@ for iter = 1:maxIter
         fprintf('Converged at iteration %d\n', iter);
         break;
     end
-    loglik_prev = total_loglik;
+
     fprintf('Iter %2d | loglik = %.4f | Δloglik = %.4f\n', iter, total_loglik, total_loglik - loglik_prev);
     fprintf('Iter %2d | mean(mu_shrunk)=%.3f | std(s_j)=%.3f | norm(beta)=%.3f\n', ...
         iter, mean(mu_shrunk(:)), std(s_j(:)), norm(cell2mat(beta(:))));
     loglik_trace(iter) = total_loglik;
+
+    loglik_prev = total_loglik;
 end
 
 %% SUPPORT FUNCTIONS
@@ -292,7 +310,7 @@ function BETA = fit_weighted_multinom(X, W, lambda)
 
     % For each state
     for k = 1:K
-        y = W(:, k); % DUBBELCHECKA HUR W SER UT
+        y = W(:, k);
         beta_k = zeros(p, 1);
         
         for it = 1:maxIRLS
