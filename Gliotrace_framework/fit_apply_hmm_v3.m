@@ -52,14 +52,14 @@ B = B ./ sum(B, 2); % Normalize
 
 pi_init = ones(1, N) / N; % Uniform initial state distribution
 
-cellines = unique(tbl.HGCC);
+cellines = unique(tbl.patient_id);
 
 % Fit A_est and pi_est for every comb of celline and perturbation
 
 % Loop through the cellines
 for i=1:length(cellines)
-    hgcc = cellines{i};
-    subtable = tbl(tbl.HGCC == string(hgcc),:);
+    patient = cellines{i};
+    subtable = tbl(tbl.patient_id == string(patient),:);
 
     perturbations = unique(subtable.perturbation);
 
@@ -74,7 +74,7 @@ for i=1:length(cellines)
             dose_curr = dosez(k);
             subtable_3 = subtable_2(subtable_2.dose == dose_curr,:);
             sequences = {};
-            idx = logical((tbl.HGCC == string(hgcc)) .* (tbl.perturbation == string(pert)) .* (tbl.dose == dose_curr));
+            idx = logical((tbl.patient_id == string(patient)) .* (tbl.perturbation == string(pert)) .* (tbl.dose == dose_curr));
 
             for l=1:height(subtable_3)
                 seqs = subtable_3.props{l};
@@ -112,7 +112,7 @@ for i=1:length(cellines)
             tbl.pi_est(idx) = {mean(pi_est_avg,3)};
         end
     end
-    fprintf(['Fit HMM parameters for celline: ' hgcc '...\n'])
+    fprintf(['Fit HMM parameters for celline: ' patient '...\n'])
 end
 
 % ------------------------------ Clean tracks ----------------------------

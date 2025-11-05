@@ -18,20 +18,19 @@ function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackf
 % @authors: Madeleine Skeppås, Sven Nelander
 % @date: 05062024
 %
-% Load neural networks and create stacktable
-metadata=readtable(path_to_metadata);
 
 load('trainedNetwork_6class_v2.mat');
 load('trainedNetwork_tme.mat');
 blocksize=61;
 warning('off', 'all')
 
-stacktable=build_stack_table(metadata,stackfile);
+if(nargin > 1)
+    stacktable = build_stack_table_flex(stackfile, readtable(path_to_metadata));
+else
+    stacktable = build_stack_table_flex(stackfile);
+end
 
 % Define the set of stacks to be analyzed
-
-cellines= unique(stacktable.HGCC); % Retrieve the names of HGCC cellines
-
 perturbations = "all";
 if strcmp(perturbations, "all")
     idx = true(height(stacktable), 1); % Select all rows
@@ -72,17 +71,18 @@ fprintf('Building slice statistics table...\n')
 fprintf(['Estimated time: ' num2str(ceil((height(subtable) * 22.45)/60)) ' minutes\n'])
 
 % Iterate through the stacks
-parfor i=1:height(subtable)
+for i=1:height(subtable)
     empty_video = false;
     fprintf(['Tracking cells in stack: ' num2str(i) ' / ' num2str(height(subtable)) '...\n']);
     
     % Load the stack
-    stack = load(subtable.file{i}); 
+    stack = load(subtable.file_path{i}); 
     stack = stack.stack;
 
     % Save green and red channel in separate variables
     gbm=stack.Tstack;
     vasc=stack.Vstack;
+    blue = stack.Bstack;
     dt=subtable.delta_t(i);
 
     % Calculate ROI-level statistics
@@ -154,7 +154,7 @@ parfor i=1:height(subtable)
     segmented_stack(i) = {segstack};
 
     % Visualize tracking and classification if output path is given
-    if(args > 1)
+    if(args > 2)
         mode = "morphology";
         path = output;
         vis_tracking_HD(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx,path);

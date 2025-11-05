@@ -68,12 +68,12 @@ for j=1:length(perturbation)
     for k=1:length(dosez)
         dose_curr = dosez(k);
         tbl_ext_pert_dose = tbl_ext_pert(tbl_ext_pert.dose == dose_curr,:);
-        cellines = unique(tbl_ext_pert_dose.HGCC);
+        cellines = unique(tbl_ext_pert_dose.patient_id);
     
         % Loop through each cell line
         for i=1:length(cellines)
-            hgcc = cellines{i};
-            tab = tbl_ext_pert_dose(strcmp(tbl_ext_pert_dose.HGCC,hgcc),:);
+            patient = cellines{i};
+            tab = tbl_ext_pert_dose(strcmp(tbl_ext_pert_dose.patient_id,patient),:);
             
             % Calculate the ratio of different labels for each ROI
             % First look at TME labels
@@ -107,7 +107,7 @@ for j=1:length(perturbation)
        
             % Save information about how many mice (exp) and ROIs were used to
             % calculate the ratios of this combination of pert, dose, celline
-            legendz{i} = sprintf(['Cell line: ' hgcc ' Perturbation:  ' pert ' Dose:  ' num2str(dose_curr) ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
+            legendz{i} = sprintf(['Cell line: ' patient ' Perturbation:  ' pert ' Dose:  ' num2str(dose_curr) ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
         end
     
         data{j,k,1} = morphes;

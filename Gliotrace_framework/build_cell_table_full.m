@@ -7,7 +7,7 @@ function outs = build_cell_table_full(tbl_in_full)
 %  set - set number
 %  exp - experiment number
 %  roi - roi number (in experiment)
-%  hgcc - celline
+%  patient_id - celline
 %  perturbation - treatment/control
 %  dose - dose of treatment
 %  morphology - dominating morphology label of viterbi track
@@ -35,18 +35,18 @@ function outs = build_cell_table_full(tbl_in_full)
 % @date: 140624
 
 % Define varnames of table
-varnames = {'set', 'exp', 'roi', 'hgcc', 'perturbation', 'dose', ...
+varnames = {'set', 'exp', 'roi', 'patient_id', 'perturbation', 'dose', ...
 'morphology', 'tme','trax', 'tray', 'noisy_labels', 'viterbi_path', ...
 'tme_labels', 'tad', 'tad_tme','dominating_morph_idx', 'average_speed', 'average_speed_tme'};
 
-cellines = unique(tbl_in_full.HGCC);
+cellines = unique(tbl_in_full.patient_id);
 outs = struct;
 out={};
 info=[];
 
 for p=1:length(cellines)
     tbl_out=table;
-    subtab=tbl_in_full(tbl_in_full.HGCC == string(cellines{p}), :);
+    subtab=tbl_in_full(tbl_in_full.patient_id == string(cellines{p}), :);
 
     perturbations = unique(subtab.perturbation);
 
@@ -102,7 +102,7 @@ for p=1:length(cellines)
                         speeds_tme = [speeds_tme; speed];
                     end
             
-                    tbl_out = [tbl_out; array2table({row.set, row.exp, row.roi, row.HGCC row.perturbation{:} row.dose morphology tme_dom traxs(:,j) trays(:,j) props(:,j) path props_tme(:,j) tads' tads_tme' idx speeds speeds_tme},"VariableNames",varnames)];
+                    tbl_out = [tbl_out; array2table({row.set, row.exp, row.roi, row.patient_id row.perturbation{:} row.dose morphology tme_dom traxs(:,j) trays(:,j) props(:,j) path props_tme(:,j) tads' tads_tme' idx speeds speeds_tme},"VariableNames",varnames)];
                 end
             end
             tbl_out.Properties.VariableNames = varnames;
