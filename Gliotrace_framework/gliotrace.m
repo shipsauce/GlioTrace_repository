@@ -21,9 +21,9 @@ function gliotrace_output = gliotrace(stackfile, path_to_metadata, output_path)
 % and generate corresponding videos saved into the defined output path (if
 % provided)
 if(nargin>2)
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, output_path);
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity, output_path);
 else
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata);
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity);
 end
 
 % Force control samples to have zero dose

@@ -86,7 +86,7 @@ for i=1:loop_length
         
             if(r==9)
                 myROI.experiment(roi_count) = cellstr(experiment_of_interest);
-                myROI(roi_count, {'X','Y','W','H'}) = num2cell(h.Position);
+                myROI{roi_count, {'X','Y','W','H'}} = num2cell(h.Position);
                 roi_count = roi_count+1;
                 update=0;
             end

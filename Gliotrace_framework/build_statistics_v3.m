@@ -1,4 +1,4 @@
-function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, output)
+function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity, output)
 % 
 % Given a set of ROIs (stacks) from a brain slice culture experiment, 
 % this script will calculate ROI-level and cell-level statistics and 
@@ -24,7 +24,7 @@ load('trainedNetwork_tme.mat');
 blocksize=61;
 warning('off', 'all')
 
-if(nargin > 1)
+if(nargin > 1) %% FIXA DETTA
     stacktable = build_stack_table_flex(stackfile, readtable(path_to_metadata));
 else
     stacktable = build_stack_table_flex(stackfile);
@@ -154,7 +154,7 @@ for i=1:height(subtable)
     segmented_stack(i) = {segstack};
 
     % Visualize tracking and classification if output path is given
-    if(args > 2)
+    if(args > 4)
         mode = "morphology";
         path = output;
         vis_tracking_HD(traX,traY,gbm, vasc,subtable(i,[1 2 3 8 9]), phenotypes, mode, startidx,path);
