@@ -81,7 +81,7 @@ for iter = 1:maxIter
         for k = 1:K
             % Calculate distance between embedding and shrunken centroid,
             % normalize for comparison
-            diffs = (E{i} - mu_init(k,:)) ./ (s_j); % subtract centroid of cluster, normalize by each dims med abs dev
+            diffs = (E{i} - mu_init(k,:)) ./ (s_j); % subtract centroid of cluster, normalize by each dims med abs dev ÄNDRA MU
             d2 = sum(diffs.^2, 2); % Squared sum of distances for each timepoint to class K
             logB(:,k) = -0.5 * d2; % log-likelohood of belonging to state at each timepoint
         end
@@ -225,6 +225,7 @@ for iter = 1:maxIter
     delta = (mu_raw - mu_global) ./ (s_j + 1e-8);
     delta_shrunk = sign(delta) .* max(abs(delta) - Delta, 0);
     mu_shrunk = mu_global + delta_shrunk .* s_j;
+    % UPPDATERA SJ?
     
     % Check for convergence
     if iter > 1 && abs(total_loglik - loglik_prev) < tol

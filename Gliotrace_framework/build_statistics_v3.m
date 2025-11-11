@@ -60,6 +60,7 @@ trays = {};
 props = {};
 vasc_length_stack = {};
 segmented_stack = {};
+binary_stacks = {};
 vasculature_statistics = table;
 cell_snapshots = {};
 vasc_snapshots = {};
@@ -164,9 +165,10 @@ parfor i=1:height(subtable)
     embeddings_long{i} = embeddings;
 
 
-    [vasc_length, segstack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
+    [vasc_length, segstack, binary_stack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
     vasc_length_stack(i) = {vasc_length};
     segmented_stack(i) = {segstack};
+    binary_stacks(i) = {binary_stack};
 
     % Visualize tracking and classification if output path is given
     if(args > 1)
@@ -182,6 +184,7 @@ end
 % Merge stacktable with calculated statistics
 vasculature_statistics.vasc_length_stack = vasc_length_stack';
 vasculature_statistics.segmented_stack = segmented_stack';
+vasculature_statistics.binary_stack = binary_stacks';
 vasculature_statistics = [subtable vasculature_statistics];
 
 subtable.x_coords = x_coords';

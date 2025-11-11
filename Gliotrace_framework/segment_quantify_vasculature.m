@@ -1,4 +1,4 @@
-function [vasc_length_stack, segstack] = segment_quantify_vasculature(Vstack, info, path)
+function [vasc_length_stack, segstack, binary_stack] = segment_quantify_vasculature(Vstack, info, path)
 % This function takes the red channel of a brain slice stack and uses a
 % neural network to segment the vasculature with semantic segmentation. The
 % resulting binary mask is measured in length by skeletonization followed
@@ -26,6 +26,7 @@ load("net_2025_02_20.mat")
 
 vasc_length_stack = {};
 segstack = [];
+binary_stack = [];
 close all force
 
 if(~isempty(path))
@@ -64,6 +65,7 @@ for i=1:size(Vstack,3)
     rgbImage(:,:,3) = imgray .* ~imdilate(skel_resized,strel('disk',2)) + (225/255) * imdilate(skel_resized,strel('disk',2));
 
     segstack(:,:,:,i) = im2uint8(rgbImage);
+    binary_stack(:,:,i) = predictedMask;
     
     if(~isempty(path))
         % Write to video

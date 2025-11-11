@@ -1,4 +1,4 @@
-function [traX, traY, phenotypes] = connect_tracklets(traX, traY, phenotypes)
+function [traX, traY, phenotypes, propagated_labels] = connect_tracklets(traX, traY, phenotypes, propagated_labels)
 % This function iterates over the frames in the stack and tries to connect 
 % track starts and stops that are within a given matching distance that grows
 % iteratively. When a match is made between a stop and a start, the newest
@@ -9,6 +9,10 @@ function [traX, traY, phenotypes] = connect_tracklets(traX, traY, phenotypes)
 % traY - frame-wise y-coordinates of tracks (rows = frames, cols = tracks)
 % phenotypes - frame-wise properties of cells (1-5: morphology class probability
 %                          scores, 6: morphology class, 7: TME interaction class)
+% propagated labels - matrix matching traX and traY with booleans
+%                           indicating whether information in current
+%                           timepoint was propagated from last seen
+%                           timepoit
 %
 % Output parameters:
 % Same as input parameters but adjusted for connected tracks.
@@ -49,6 +53,9 @@ function [traX, traY, phenotypes] = connect_tracklets(traX, traY, phenotypes)
                 traY(i:end,track_stops(pairs(:,2)))=traY(i:end,track_starts(pairs(:,1)));
                 traX(i:end,track_starts(pairs(:,1)))=nan;
                 traY(i:end,track_starts(pairs(:,1)))=nan;
+
+                propagated_labels(i:end,track_stops(pairs(:,2))) = propagated_labels(i:end,track_starts(pairs(:,1)));
+                propagated_labels(i:end,track_starts(pairs(:,1))) = nan;
                 
                 % apply the same operation to every phenotype
                 for k=1:length(phenotypes)
@@ -64,6 +71,8 @@ function [traX, traY, phenotypes] = connect_tracklets(traX, traY, phenotypes)
         f=find(sum(isnan(traX))<size(traX,1));
         traX=traX(:,f);
         traY=traY(:,f);
+
+        propagated_labels = propagated_labels(:,f);
 
         for p=1:length(phenotypes)
             data = phenotypes{p};
