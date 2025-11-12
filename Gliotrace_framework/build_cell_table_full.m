@@ -35,7 +35,7 @@ function outs = build_cell_table_full(tbl_in_full)
 % @date: 140624
 
 % Define varnames of table
-varnames = {'set', 'exp', 'roi', 'patient_id', 'perturbation', 'dose', ...
+varnames = {'exp', 'roi', 'patient_id', 'perturbation', 'dose', ...
 'morphology', 'tme','trax', 'tray', 'noisy_labels', 'viterbi_path', ...
 'tme_labels', 'tad', 'tad_tme','dominating_morph_idx', 'average_speed', 'average_speed_tme'};
 
@@ -102,7 +102,7 @@ for p=1:length(cellines)
                         speeds_tme = [speeds_tme; speed];
                     end
             
-                    tbl_out = [tbl_out; array2table({row.set, row.exp, row.roi, row.patient_id row.perturbation{:} row.dose morphology tme_dom traxs(:,j) trays(:,j) props(:,j) path props_tme(:,j) tads' tads_tme' idx speeds speeds_tme},"VariableNames",varnames)];
+                    tbl_out = [tbl_out; array2table({row.experiment_id, row.roi_id{:}, row.patient_id row.perturbation{:} row.dose morphology tme_dom traxs(:,j) trays(:,j) props(:,j) path props_tme(:,j) tads' tads_tme' idx speeds speeds_tme},"VariableNames",varnames)];
                 end
             end
             tbl_out.Properties.VariableNames = varnames;

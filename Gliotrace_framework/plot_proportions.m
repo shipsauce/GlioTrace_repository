@@ -21,7 +21,7 @@ function tbl_ext = plot_proportions(tbl, style, perturbation, varnames,label)
 majority_morphs = [];
 
 if(nargin < 4)
-    varnames = {'Branching', 'Diffuse translocation', 'Junk','Locomotion', 'Perivascular translocation', 'Round'};
+    varnames = {'Branching', 'Diffuse translocation', 'Crowded','Locomotion', 'Perivascular translocation', 'Round'};
     label = "morph";
 end
 
@@ -58,7 +58,7 @@ end
 try
     tbl_ext = [tbl majority_morphs];
 catch
-    tbl_ext = [tbl(:,1:25) majority_morphs];
+    tbl_ext = tbl;
 end
 
 morphes = {};
@@ -79,12 +79,12 @@ for j=1:length(perturbation)
     for k=1:length(dosez)
         dose_curr = dosez(k);
         tbl_ext_pert_dose = tbl_ext_pert(tbl_ext_pert.dose == dose_curr,:);
-        cellines = unique(tbl_ext_pert_dose.HGCC);
+        cellines = unique(tbl_ext_pert_dose.patient_id);
     
         % Loop through each cell line
         for i=1:length(cellines)
             hgcc = cellines{i};
-            tab = tbl_ext_pert_dose(strcmp(tbl_ext_pert_dose.HGCC,hgcc),:);
+            tab = tbl_ext_pert_dose(strcmp(tbl_ext_pert_dose.patient_id,hgcc),:);
             
             % Calculate the ratio of different labels for each ROI
             if(label == "tme")
@@ -102,8 +102,8 @@ for j=1:length(perturbation)
                 end
             else
                 try
-                    cellcount = table2array(sum(tab(:,[27 28 30 31 32]),2));
-                    lab_counts = table2array((tab(:,[27 28 30 31 32]))) ./ cellcount;
+                    cellcount = table2array(sum(tab(:,22:27),2));
+                    lab_counts = table2array((tab(:,22:27))) ./ cellcount;
                 catch
                     cellcount = table2array(sum(tab(:,[26 27 29 30 31]),2));
                     lab_counts = table2array((tab(:,[26 27 29 30 31]))) ./ cellcount;
@@ -119,7 +119,7 @@ for j=1:length(perturbation)
        
             % Save information about how many mice (exp) and ROIs were used to
             % calculate the ratios of this combination of pert, dose, celline
-            legendz{i} = sprintf([hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
+            legendz{i} = sprintf([hgcc ' (n = ' num2str(length(unique(tab.experiment_id))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
         end
     
         data{j,k} = morphes;
@@ -209,8 +209,6 @@ else
         bar([cell2mat(data{1}); cell2mat(data{2})],'stacked', 'BarWidth',0.7, 'EdgeColor','none')
         legend(varnames, 'Location', 'bestoutside');
         colororder(pink(7))
-        xticks([1 2])
-        xticklabels({"U3013MG scramble", "U3013MG ANXA1KO"})
         ylabel('Ratio of cells in class')
         fontsize('scale', 1.5)
         ax=gca;

@@ -102,7 +102,7 @@ for i=1:loop_length
             Bstack=[]; % blue channel
             for time=1:length(files_sub)
                 im_path=[files_sub(time).folder '/' files_sub(time).name];
-                im=imread(im_path,'PixelRegion',{[ROI.Y ROI.Y+ROI.H],[ROI.X ROI.X+ROI.W]});
+                im=imread(im_path,'PixelRegion',{[ROI.Y{:} ROI.Y{:}+ROI.H{:}],[ROI.X{:} ROI.X{:}+ROI.W{:}]});
                 Tstack(:,:,time)=im(:,:,2);
                 Vstack(:,:,time)=im(:,:,1);
                 Bstack(:,:,time)=im(:,:,3);
@@ -129,7 +129,9 @@ for i=1:loop_length
     else
         files_sub = files(strcmp({files.folder}, folders{i}));
         foldername = regexp(files_sub(1).folder, '[^/\\]+$', 'match');
-        experiment_of_interest = strrep(foldername{:}, ' ', '_');
+        if(contains(foldername,' '))
+            experiment_of_interest = strrep(foldername{:}, ' ', '_'); 
+        end
 
         ROIs_sub = coordinate_file(strcmp(coordinate_file.exp, experiment_of_interest),:);
 
@@ -165,5 +167,5 @@ for i=1:loop_length
         stacktable_total = [stacktable_total stacktable];
     end
 end
-
+close all
 end

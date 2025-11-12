@@ -26,7 +26,7 @@ if(mode == "morphology")
 
     % Create a VideoWriter object and give it a filename for writing to
     % folder
-    filename = [path '/set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '_morphology.mp4'];
+    filename = [path '/' info.experiment_id{:} '_roi_' num2str(info.roi_id{:}) '_morphology.mp4'];
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
     obj.Quality = 100;
@@ -109,7 +109,7 @@ if(mode == "morphology")
 elseif(mode == "tme")
     % Create a VideoWriter object and give it a filename for writing to
     % folder
-    filename = [path '/set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '_tme.mp4'];
+    filename = [path '/' info.experiment_id{:} '_roi_' num2str(info.roi_id{:}) '_tme.mp4'];
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
     obj.Quality = 100;

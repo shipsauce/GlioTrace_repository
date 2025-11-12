@@ -29,7 +29,7 @@ segstack = [];
 close all force
 
 if(~isempty(path))
-    filename = [path '/set_' num2str(info.set) '_exp_' num2str(info.exp) '_roi_' num2str(info.roi) '_vasculature_segmentation.mp4'];
+    filename = [path '/' info.experiment_id{:} '_roi_' num2str(info.roi_id{:}) '_vasculature_segmentation.mp4'];
     obj=VideoWriter(filename,'MPEG-4');
     obj.FrameRate = 5;
     obj.Quality = 50;

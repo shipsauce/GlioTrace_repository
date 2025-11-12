@@ -1,4 +1,4 @@
-function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity, output)
+function [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, detection_sensitivity, perturbations, output)
 % 
 % Given a set of ROIs (stacks) from a brain slice culture experiment, 
 % this script will calculate ROI-level and cell-level statistics and 
@@ -24,14 +24,9 @@ load('trainedNetwork_tme.mat');
 blocksize=61;
 warning('off', 'all')
 
-if(nargin > 1) %% FIXA DETTA
-    stacktable = build_stack_table_flex(stackfile, readtable(path_to_metadata));
-else
-    stacktable = build_stack_table_flex(stackfile);
-end
+stacktable = build_stack_table_flex(stackfile, readtable(path_to_metadata));
 
 % Define the set of stacks to be analyzed
-perturbations = "all";
 if strcmp(perturbations, "all")
     idx = true(height(stacktable), 1); % Select all rows
 else
@@ -83,6 +78,7 @@ for i=1:height(subtable)
     gbm=stack.Tstack;
     vasc=stack.Vstack;
     blue = stack.Bstack;
+
     dt=subtable.delta_t(i);
 
     % Calculate ROI-level statistics
@@ -110,20 +106,12 @@ for i=1:height(subtable)
     hsizeh = 60; % Size of LoG filter used in blob detection
     cutoff = 2e-4; % Intensity threshold in blob detection
 
+    scaler1 = 1 + detection_sensitivity * (10 - 1);
+    scaler2 = 1 + detection_sensitivity * (30 - 1);
+
     % Identify cell coordinates
-    try
-        [cellsx,cellsy,intensity,feat,vascc]=macro_track2(gbm,vasc,sigmah,hsizeh,cutoff, blocksize, "normal");
-    catch
-        try
-            % If cells are sparse in frames, try another set of parameters
-            [cellsx,cellsy,intensity,feat,vascc]=macro_track2(gbm,vasc,sigmah/2,hsizeh/2,cutoff*6, blocksize, "sparse");
-            fprintf(['Sparse ROI no: ' num2str(i) '\n'])
-        catch
-            empty_video = true;
-            fprintf(['Empty ROI no: ' num2str(i) '\n'])
-        end
-    end
-    
+    [cellsx,cellsy,intensity,feat,vascc]=macro_track2(gbm,vasc, sigmah/scaler1, hsizeh/scaler1, cutoff*scaler2, blocksize, "normal");
+
     if(~empty_video)
         % Classify cell morphology and interactions with the TME
         properties = classify_tumor_cells(feat, vascc, blocksize, net_const.Value, tme_net_const.Value, i);

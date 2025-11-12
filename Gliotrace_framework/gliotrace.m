@@ -1,4 +1,4 @@
-function gliotrace_output = gliotrace(stackfile, path_to_metadata, output_path)
+function gliotrace_output = gliotrace(stackfile, path_to_metadata, detection_sensitivity, perturbations, output_path)
 % The GlioTrace framework takes a set of stabilized RGB image stacks and 
 % performs cell identification, tracking and classification. The resulting
 % cell tracks and labels are used to fit parameters of a Hidden Markov
@@ -20,10 +20,10 @@ function gliotrace_output = gliotrace(stackfile, path_to_metadata, output_path)
 % Perform cell tracking and classification, calculate ROI-level statistics
 % and generate corresponding videos saved into the defined output path (if
 % provided)
-if(nargin>2)
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity, output_path);
+if(nargin>4)
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, detection_sensitivity, perturbations, output_path);
 else
-    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, channel_info, detection_sensitivity);
+    [slice_statistics, vasculature_statistics] = build_statistics_v3(stackfile, path_to_metadata, detection_sensitivity, perturbations);
 end
 
 % Force control samples to have zero dose
@@ -43,7 +43,12 @@ slice_statistics_append = count_label_proportions(tbl_fit);
 cell_table_full = build_cell_table_full(slice_statistics_append);
 
 % Create table of statistics on drug effects
+perturbations = length(unique(slice_statistics.perturbation));
+if(perturbations > 1)
 drug_statistics = compute_drug_effects(slice_statistics_append);
+else
+    drug_statistics = [];
+end
 
 gliotrace_output = struct;
 gliotrace_output.slice_statistics = slice_statistics_append;

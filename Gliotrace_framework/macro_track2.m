@@ -31,7 +31,7 @@ function [cellsx,cellsy,intensity,FEAT,VASC]=macro_track2(mystack,vasc,sigmah,hs
 debug=false;    
 
 % Create a Logarithm-of-Gaussian filter
-h1 = fspecial('log', hsizeh, sigmah);
+h1 = fspecial('log', round(hsizeh), round(sigmah));
 
 % Create structures for storing cell coordinates and associated intensities
 cellsy={};

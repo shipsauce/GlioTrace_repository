@@ -58,8 +58,8 @@ for i=1:length(cellines)
     
     % Extract the relevant data and reformat
     tab=tbl_ext(logical(tbl_ext.patient_id == string(cellines{i})),:); 
-    tab.Properties.VariableNames(31) = "Perivascular_translocation";
-    tab.Properties.VariableNames(28) = "Diffuse_translocation";
+    tab.Properties.VariableNames(26) = "Perivascular_translocation";
+    tab.Properties.VariableNames(23) = "Diffuse_translocation";
     tab.alpha = cell2mat(tab.alpha);
     tab.adMAD_mean = cell2mat(tab.adMAD_mean);
     tab.prolif_mean = cell2mat(tab.prolif_mean);

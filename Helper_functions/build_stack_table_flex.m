@@ -13,11 +13,14 @@ end
 experiment_id = cellfun(@(x) extract_id(x), t.file_path, 'UniformOutput',false);
 t.experiment_id = experiment_id;
 
+roi_id = cellfun(@(x) extract_roi_num(x), t.file_path, 'UniformOutput',false);
+t.roi_id = roi_id;
+
 if(nargin > 1)
     lookup = zeros(size(t.experiment_id));  % preallocate
     
     for i = 1:numel(t.experiment_id)
-        idx = find(contains(metadata.filename_experiment_id, t.experiment_id{i}), 1);
+        idx = find(contains(metadata.experiment_id, t.experiment_id{i}), 1);
         if ~isempty(idx)
             lookup(i) = idx;
         else

@@ -1,12 +1,12 @@
 function tbl_in = fit_msd(tbl_in)
-cellines = unique(tbl_in.HGCC);
+cellines = unique(tbl_in.patient_id);
 
 % Calculate MSD curve parameters for every combination of cell line, perturbation & dose, set
 
 % Iterate over the cellines
 for i=1:length(cellines)
     hgcc = cellines{i};
-    subtable = tbl_in(tbl_in.HGCC == string(hgcc),:);
+    subtable = tbl_in(tbl_in.patient_id == string(hgcc),:);
 
     perturbations = unique(subtable.perturbation);
     
@@ -25,7 +25,7 @@ for i=1:length(cellines)
             
             subtable_2 = subtable_1(subtable_1.dose == dose,:);
             
-            idx = logical((tbl_in.HGCC == string(hgcc)) .* (tbl_in.perturbation == string(pert)) .* (tbl_in.dose == dose));
+            idx = logical((tbl_in.patient_id == string(hgcc)) .* (tbl_in.perturbation == string(pert)) .* (tbl_in.dose == dose));
             
             max_frames = max(subtable_2.frames);
             deltat_max = max(subtable_2.delta_t);
@@ -33,7 +33,7 @@ for i=1:length(cellines)
             
             t_max = 0:deltat_min:(max_frames*deltat_max);
             
-            setz = unique(subtable_2.set);
+            setz = unique(subtable_2.delta_t);
             
             sd_subset=nan(length(t_max),sum(cellfun(@(x) size(x,2), subtable_2.traxs)));
             
@@ -42,7 +42,7 @@ for i=1:length(cellines)
             
             for k=1:(length(setz))
                 zet = setz(k);
-                subtable_3 = subtable_2(subtable_2.set == zet,:);
+                subtable_3 = subtable_2(subtable_2.delta_t == zet,:);
                 
                 delta_t = subtable_3.delta_t(1);
                 

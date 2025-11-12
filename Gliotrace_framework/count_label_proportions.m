@@ -98,8 +98,8 @@ for j=1:length(perturbation)
                 cellcount = table2array(sum(tab(:,[27 28 30 31 32]),2));
                 lab_counts = table2array((tab(:,[27 28 30 31 32]))) ./ cellcount;
             catch
-                cellcount = table2array(sum(tab(:,[26 27 29 30 31]),2));
-                lab_counts = table2array((tab(:,[26 27 29 30 31]))) ./ cellcount;
+                cellcount = table2array(sum(tab(:,[22 23 25 26 27]),2));
+                lab_counts = table2array((tab(:,[22 23 25 26 27]))) ./ cellcount;
             end
     
             % Save the mean ratios across all ROIs
@@ -107,7 +107,7 @@ for j=1:length(perturbation)
        
             % Save information about how many mice (exp) and ROIs were used to
             % calculate the ratios of this combination of pert, dose, celline
-            legendz{i} = sprintf(['Cell line: ' patient ' Perturbation:  ' pert ' Dose:  ' num2str(dose_curr) ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
+            legendz{i} = sprintf(['Cell line: ' patient ' Perturbation:  ' pert ' Dose:  ' num2str(dose_curr) ' (n = ' num2str(length(unique(tab.experiment_id))) ')' ' (ROIs = ' num2str(height(tab)) ')']);
         end
     
         data{j,k,1} = morphes;
