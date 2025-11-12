@@ -156,7 +156,7 @@ if(~(style == "combined"))
         
                 colors = [0.8660,    0.3290,  0;
                 0.3290,    0.7130,    1.0000;
-                
+                0.0660    0.4430    0.7450
                 0.9960,    0.5640,    0.2620;
                 0.4540,    0.9210,    0.8540;
                      0,   0.6390,   0.6390
@@ -169,7 +169,7 @@ if(~(style == "combined"))
                     legend(varnames, 'Location', 'bestoutside');
                     colororder(pink(7))
                 elseif(perturbation{j} == "control")
-                    legend(varnames([1 2 4 5 6]), 'Location', 'bestoutside');
+                    legend(varnames([1 2 3 4 5 6]), 'Location', 'bestoutside');
                 end
                 xticks(1:length(legends{j,k}))
                 xticklabels(legends{j,k})
@@ -178,7 +178,7 @@ if(~(style == "combined"))
     
                 colors = [0.8660,    0.3290,  0;
                 0.3290,    0.7130,    1.0000;
-                
+                0.0660    0.4430    0.7450
                 0.9960,    0.5640,    0.2620;
                 0.4540,    0.9210,    0.8540;
                      0,   0.6390,   0.6390
@@ -216,7 +216,7 @@ else
     else
         colors = [0.8660,    0.3290,  0;
         0.3290,    0.7130,    1.0000;
-        
+        0.0660    0.4430    0.7450
         0.9960,    0.5640,    0.2620;
         0.4540,    0.9210,    0.8540;
              0,   0.6390,   0.6390

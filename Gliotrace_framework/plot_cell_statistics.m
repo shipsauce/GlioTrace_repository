@@ -24,7 +24,7 @@ idx = cellfun(@(x) ischar(x) && contains(x, perturbation) && contains(x,celline)
 cell_tab = cell_stats.cell_statistics{idx};
 
 % Define the morphological categories
-morph = {'Branching', 'Diffuse translocation', 'Junk','Locomotion', 'Perivascular translocation', 'Round'};
+morph = {'Branching', 'Diffuse translocation', 'Crowded','Locomotion', 'Perivascular translocation', 'Round'};
 
 % Plot TAD
 figure;
@@ -39,6 +39,7 @@ end
 % Define colors for violin plot
 colors = [0.8660,    0.3290,  0;
 0.3290,    0.7130,    1.0000;
+0.0660    0.4430    0.7450
 0.9960,    0.5640,    0.2620;
 0.4540,    0.9210,    0.8540;
      0,   0.6390,   0.6390
@@ -52,13 +53,11 @@ for i=1:length(morph)
     data{i} = log(speed+1);
 end
 
-data = data(:,[1 2 4 5 6]);
-
 data1=[];
 group_idx = [];
 
 % Create a grouping variable
-for i=1:5
+for i=1:6
     data1 = [data1; data{i}];
     group_idx = [group_idx; repmat(i,[1 length(data{i})])'];
 end
@@ -66,7 +65,7 @@ end
 % Plot violin plot of speed
 daviolinplot(data1,'groups', group_idx,'colors', colors,'outsymbol','k+',...
     'boxcolors','same','scatter',1,'jitter',1, 'scattercolors', 'same',...
-    'scatteralpha', 0.4, 'violinalpha', 1, 'boxalpha', 0.9,'xtlabels', morph([1 2 4 5 6]));
+    'scatteralpha', 0.4, 'violinalpha', 1, 'boxalpha', 0.9,'xtlabels', morph([1 2 3 4 5 6]));
 
 % Perform ANOVA
 [p, tbl, stats] = anova1(data1, group_idx);
