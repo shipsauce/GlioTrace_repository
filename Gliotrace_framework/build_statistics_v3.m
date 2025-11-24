@@ -158,16 +158,15 @@ parfor i=1:height(subtable)
     traxs{i} = traX;
     trays{i} = traY;
     props{i} = phenotypes;
-    cell_snaps{i} = feat;
-    vasc_snaps{i} = vascc;
+    % cell_snaps{i} = feat;
+    % vasc_snaps{i} = vascc;
     start_indices(i) = startidx;
     propagated_labs_for_hmm{i} = propagated_labels;
     embeddings_long{i} = embeddings;
 
 
-    [vasc_length, segstack, binary_stack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
+    [vasc_length, binary_stack] = segment_quantify_vasculature(vasc,subtable(i,:), output);
     vasc_length_stack(i) = {vasc_length};
-    segmented_stack(i) = {segstack};
     binary_stacks(i) = {binary_stack};
 
     % Visualize tracking and classification if output path is given
@@ -183,7 +182,6 @@ end
 
 % Merge stacktable with calculated statistics
 vasculature_statistics.vasc_length_stack = vasc_length_stack';
-vasculature_statistics.segmented_stack = segmented_stack';
 vasculature_statistics.binary_stack = binary_stacks';
 vasculature_statistics = [subtable vasculature_statistics];
 
@@ -196,8 +194,8 @@ subtable.growth_rate = growth_rate;
 subtable.sad = sad;
 subtable.adMAD = adMAD';
 subtable.sum_green = sum_green';
-subtable.cell_snaps = cell_snaps';
-subtable.vasc_snaps = vasc_snaps';
+% subtable.cell_snaps = cell_snaps';
+% subtable.vasc_snaps = vasc_snaps';
 subtable.startidx = start_indices';
 subtable.propagated_labels = propagated_labs_for_hmm';
 subtable.embeddings_long = embeddings_long';
