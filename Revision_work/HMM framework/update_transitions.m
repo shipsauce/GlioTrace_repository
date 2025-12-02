@@ -44,12 +44,12 @@ for i = 1:K
     opts = statset('MaxIter', glm_iters);
 
     % Test vanilla HMM
-    % T = array2table(X);
-    % T.Y = y;
-    % mdl = fitmnr(T, 'Y ~ 1', 'Weights', sample_weights);
+    T = array2table(X);
+    T.Y = y;
+    mdl = fitmnr(T, 'Y ~ 1', 'Weights', sample_weights);
 
-    mdl = fitmnr(X, y, ...
-    'Weights', sample_weights);
+    % mdl = fitmnr(X, y, ...
+    % 'Weights', sample_weights);
 
     models{i} = mdl;
 end

@@ -1,4 +1,4 @@
-function [mappedInfo_total, mappedInfo_mean] = mapCoords_embed(X, Y, coordsX, coordsY, info, startidx)
+function mappedInfo_total = mapCoords_embed(X, Y, coordsX, coordsY, info, startidx)
 % MAPCOORDS maps coordinates in (X,Y) to row indices in coordsX/coordsY,
 % and fetches feature vectors from info{t} matrices.
 %
@@ -11,13 +11,11 @@ function [mappedInfo_total, mappedInfo_mean] = mapCoords_embed(X, Y, coordsX, co
 % Outputs:
 %   mappedInfo_total - {time x cells} cell array; each cell contains a 1×features vector
 %                      (e.g. the row from info{t} corresponding to X(t,c),Y(t,c))
-%   mappedInfo_mean  - [time x cells] matrix of means across the feature vector
 
 [nt, nc] = size(X);
 rowIdx = nan(nt, nc);
 
 mappedInfo_total = cell(nt, nc);
-mappedInfo_mean  = nan(nt, nc);
 
 for t = 1:nt
     t_delayed = t + startidx - 1;
@@ -34,25 +32,17 @@ for t = 1:nt
 
         if ~isempty(match)
             rowIdx(t,c) = match;
-        elseif t > 1 && ~isnan(rowIdx(t-1,c)) && ~isnan(xval)
-            % fallback to previous valid index
-            rowIdx(t,c) = rowIdx(t-1,c);
         else
             rowIdx(t,c) = NaN;
         end
 
         % Map feature vector
         if ~isnan(rowIdx(t,c))
-            try
-                mappedInfo_total{t,c} = infoMat(rowIdx(t,c), :);
-                mappedInfo_mean(t,c)  = mean(mappedInfo_total{t,c});
-            catch 
-                mappedInfo_total(t,c) = mappedInfo_total(t-1,c); 
-                mappedInfo_mean(t,c) = mappedInfo_mean(t-1,c);
-            end
+            mappedInfo_total{t,c} = infoMat(rowIdx(t,c), :);
+        elseif ~isnan(xval)
+            mappedInfo_total(t,c) = mappedInfo_total(t-1,c); 
         else
-            mappedInfo_total{t,c} = nan(1, size(infoMat, 2));
-            mappedInfo_mean(t,c)  = NaN;
+            mappedInfo_total{t,c} = nan(1, 256);
         end
     end
 end
