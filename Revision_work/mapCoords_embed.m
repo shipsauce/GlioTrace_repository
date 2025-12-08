@@ -21,7 +21,11 @@ for t = 1:nt
     t_delayed = t + startidx - 1;
     cx = coordsX{t_delayed};
     cy = coordsY{t_delayed};
+    try
     infoMat = info{t_delayed};  % [N_t x features] matrix
+    catch
+        infoMat = [];
+    end
 
     for c = 1:nc
         xval = X(t,c); 

@@ -1,4 +1,4 @@
-function [sequences, hard_labels, propagated_labels, tme_features, delta_ts, comb_features] = convert_data_for_hmm(tbl)
+function [sequences, hard_labels, features] = convert_data_for_hmm(tbl)
 
 cellines = unique(tbl.HGCC);
 % Loop through the cellines
@@ -30,7 +30,8 @@ for i=1:length(cellines)
                 embds = mapCoords_embed(subtable_3.traxs{l}, subtable_3.trays{l}, ...
                     subtable_3.x_coords{l}, subtable_3.y_coords{l}, subtable_3.embeddings_long{l}, subtable_3.startidx(l));
                 tme_info = info{end};
-                hard_labs = weight_hard_labels(info, subtable_3.HGCC{1});
+                %hard_labs = weight_hard_labels(info, subtable_3.HGCC{1});
+                hard_labs = info{end-1};
                 
                 labs = subtable_3.propagated_labels{l};
                 nan_idx = sum(isnan(labs),1);
@@ -50,25 +51,29 @@ for i=1:length(cellines)
                     f3 = polarization(:,n);
                     f4 = vesselCloseness(:,n);
                     f5 = deltat(:,n);
+                    f6 = tme_info(:,n);
 
-                    deltat = repmat(subtable_3.delta_t(l), [1 sum(~isnan(hard_lab))-1])';
-                    prop_lab = labs(~isnan(labs(:,n)),n);
+                    feats = [f6];
 
-                    start = min(find(~isnan(tme_assoc)));
-                    stop = max(find(~isnan(tme_assoc)));
-    
-                    sequences{rowcount} = cell2mat(embd(start:stop));
-                    hard_labels{rowcount} = hard_lab(start:stop);
-                    
-                    tme_features{rowcount} = tme_assoc(start:stop);
-                    delta_ts{rowcount} = deltat(1:end-1);
-                    % try
-                    % comb_features{rowcount} = [[deltat(1:end-1); nan(1,1)] tme_assoc(start:stop)];
-                    % catch
-                    %     1
-                    % end
+                    start = min(find(~isnan(hard_lab)));
+                    stop = max(find(~isnan(hard_lab)));
+                
+                    feats = feats(start:stop-1,:);
+                    idx = ~all(isnan(feats),2);
+                    feats = feats(~all(isnan(feats),2),:); % Remove rows with all NaNs
+
+                    embd = embd(start:stop-1);
+                    embd = embd(idx);
+
+                    hard_lab = hard_lab(start:stop-1);
+                    hard_lab = hard_lab(idx);
+
+                    % feats = normalize(feats);
+
+                    sequences{rowcount} = cell2mat(embd);
+                    hard_labels{rowcount} = hard_lab;
+                    features{rowcount} = feats;
                     rowcount = rowcount+1;
-
                 end
             end
         end
@@ -77,8 +82,5 @@ end
 
 sequences = sequences';
 hard_labels = hard_labels';
-
-tme_features = tme_features';
-delta_ts = delta_ts';
-% comb_features = comb_features';
+features = features';
 end

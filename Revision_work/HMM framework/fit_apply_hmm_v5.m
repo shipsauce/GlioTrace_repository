@@ -40,15 +40,12 @@ for i=1:length(cellines)
         for k=1:length(dosez)
             dose_curr = dosez(k);
             subtable_3 = subtable_2(subtable_2.dose == dose_curr,:);
-            sequences = {};
-            propagated_labels = {};
-            tme_features = {};
             idx = logical((tbl.HGCC == string(hgcc)) .* (tbl.perturbation == string(pert)) .* (tbl.dose == dose_curr));
 
-            [embeddings, hard_labels, propagated_labels, tme_features, delta_ts, comb_features] = convert_data_for_hmm(subtable_3);
+            [embeddings, hard_labels,features] = convert_data_for_hmm(subtable_3);
 
     
-            [pi, mu_shrunk, sigma2_iso, active_mask, glm_models, A_global] = HMM_glm_shrunken(tme_features, ...
+            [pi, mu_shrunk, sigma2_iso, active_mask, glm_models, A_global] = HMM_glm_shrunken(features, ...
                                                                                     embeddings, ...
                                                                                     hard_labels,...
                                                                                     pi_init, ...
