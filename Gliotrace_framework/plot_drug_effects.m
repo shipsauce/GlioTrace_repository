@@ -82,7 +82,7 @@ for i=1:length(cellines)
     tbl = tbl_ext(logical(tbl_ext.HGCC == string(hgcc)),:);
 
     [p,~,stats] = anova1(cell2mat(tbl.speed), tbl.dose, "off");
-    % multcompare(stats)
+    multcompare(stats)
     p_values = [p_values; p];
 end
 

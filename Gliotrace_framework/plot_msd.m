@@ -141,7 +141,7 @@ for j=1:length(perts)
                     title(hgcc)
                 end
                 hold on
-                p = stdshade(t,sd_um', 0.1, col(dose,:), [hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')' ' Perturbation: ' perts{j} ' Dose: ' num2str(doses(dose))], linestyles{i}, markers{i},8);
+                p = stdshade(t,sd_um', 0.1, col(dose,:), [hgcc ' (n = ' num2str(length(unique(tab.exp))) ')' ' (ROIs = ' num2str(height(tab)) ')' ' Perturbation: ' perts{j} ' Dose: ' num2str(doses(dose))], linestyles{dose}, markers{i},8);
                 leg1 = [leg1 p];
                 xlabel('t (h)')
                 ylabel('MSD (µm)^2')
@@ -155,7 +155,7 @@ for j=1:length(perts)
 end
 
 % Add figure details and adjust axes
-% legend(leg1, 'Location', 'southoutside');
+legend(leg1, 'Location', 'southoutside');
 sgtitle('Cell migration (MSD)')
 fontsize('scale',1.5)
 
