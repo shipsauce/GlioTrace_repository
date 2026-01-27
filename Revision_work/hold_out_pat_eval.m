@@ -143,10 +143,89 @@ for i=1:pat_count
     
     accuracy = sum(diag(confmat)) / sum(confmat(:));
 
-    metric(i) = accuracy;
+    metric{i} = confmat;
 
 end
 
 % metric =
 % 
 %     0.7077    0.8305    0.9108    0.9714    0.9103
+
+%% Per class recall
+recall = {};
+idx = [1 2 3 5];
+% Calculate per class recall for each patient
+% For each patient
+for i=1:length(pat)-1
+    confmat = metric{idx(i)};
+    
+    % For each class
+    for j=1:6
+        calc = confmat(j,j)/ (sum(confmat(j,:)));
+        try
+            recall{j} = [recall{j} calc];
+        catch
+            recall{j} = calc;
+        end
+    end
+end
+
+% Plot distribution as boxplot
+colors = [
+     24 120 187;  % Electric Blue
+    239  71 111;  % Hot Pink Red
+    255 196  37;  % Lemon Yellow
+     38 201 164;  % Aqua Green
+    155  89 182;  % Vivid Purple
+    255 126  52   % Bright Orange
+] / 255;
+
+mat = cell2mat(recall');
+figure;
+for i=1:4
+    scatter(1:6, mat(:,i), 300, colors(i,:), "filled","diamond", "DisplayName", string(pat(idx(i))))
+    hold on
+end
+ax=gca;
+xticks(1:6)
+xticklabels({"Branching", "DT", "Crowded", "Locomotion", "PT", "Round"})
+ax.XLim = [0 7];
+ax.YLim = [0 1.1];
+ax.Box = 1;
+ylabel('Per class recall')
+title("Patient-wise per class recall")
+fontsize('scale',1.6)
+legend("Location","southeast")
+
+%% Färgfemman
+
+% Patient-normalized mean conf mat
+matagg = zeros(6,6);
+max2mean = [];
+matraw = [];
+idx = [1 2 3 5];
+for i=1:4
+    matnorm = metric{idx(i)} ./ max(metric{idx(i)}, [], 2);
+    matnorm(isnan(matnorm)) = 0;
+    matagg = matagg + matnorm;
+    max2mean(:,:,i) = matnorm;
+    matraw(:,:,i) = metric{idx(i)};
+end
+matagg = matagg./4;
+
+max2mean_rat = max(max2mean, [], 3) ./ nanmean(max2mean, 3);
+
+classNames = {"Branching", "DT", "Crowded", "Locomotion", "PT", "Round"};
+
+imagesc(matagg)
+colormap cool
+title('Patient-aggregated confusion matrix')
+xticks(1:6)
+yticks(1:6)
+xticklabels(classNames)
+yticklabels(classNames)
+fontsize('scale', 1.6)
+
+
+
+

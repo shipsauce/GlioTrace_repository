@@ -36,7 +36,7 @@ mean_image_tme = load('mean_image_tme.mat');
 mean_image_tme = mean_image_tme.mean_image;
 
 % Path used when saving snapshots
-output_path = '/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Networks_validation_v5/';
+output_path = '/Users/madsk418/UU Dropbox/Madeleine S/Simulation_and_invasion/comp/output/Madeleine/Vectra_polaris_analysis/CNN_scores/';
 
 properties={}; % Structure for saving classification results
 embeddings = {};
